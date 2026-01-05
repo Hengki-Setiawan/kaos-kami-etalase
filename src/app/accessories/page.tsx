@@ -17,28 +17,42 @@ interface Product {
     purchase_links?: { platform: string; url: string }[];
 }
 
+type PageContent = Record<string, Record<string, string>>;
+
 const accessoryCategories = ['All', 'Ganci', 'Pin', 'Sticker', 'Other'];
 
 export default function AccessoriesPage() {
     const [accessories, setAccessories] = useState<Product[]>([]);
+    const [content, setContent] = useState<PageContent>({});
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('All');
 
     useEffect(() => {
-        const fetchAccessories = async () => {
+        const fetchData = async () => {
             try {
-                const res = await fetch('/api/accessories');
-                const data = await res.json();
-                setAccessories(Array.isArray(data) ? data : []);
+                const [accRes, contentRes] = await Promise.all([
+                    fetch('/api/accessories'),
+                    fetch('/api/page-content?page=accessories')
+                ]);
+
+                const accData = await accRes.json();
+                const contentData = await contentRes.json();
+
+                setAccessories(Array.isArray(accData) ? accData : []);
+                setContent(contentData.accessories || {});
             } catch (error) {
-                console.error('Error fetching accessories:', error);
+                console.error('Error fetching data:', error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchAccessories();
+        fetchData();
     }, []);
+
+    const get = (section: string, key: string, fallback: string = '') => {
+        return content[section]?.[key] || fallback;
+    };
 
     const filteredAccessories = filter === 'All'
         ? accessories
@@ -49,33 +63,34 @@ export default function AccessoriesPage() {
             <Navbar />
 
             {/* Hero */}
-            <section className="pt-32 pb-12 px-6 bg-urban bg-grid-urban">
+            <section className="pt-24 md:pt-32 pb-8 md:pb-12 px-4 md:px-6 bg-urban bg-grid-urban">
                 <div className="max-w-7xl mx-auto">
-                    <div className="flex items-center gap-4 mb-4">
-                        <KeyRound className="w-8 h-8 text-[#ff3366]" />
-                        <span className="text-xs font-bold tracking-widest text-[#ff3366] uppercase">
+                    <div className="flex items-center gap-3 md:gap-4 mb-4">
+                        <KeyRound className="w-6 h-6 md:w-8 md:h-8 text-[#ff3366]" />
+                        <span className="text-[10px] md:text-xs font-bold tracking-widest text-[#ff3366] uppercase">
                             アクセサリー · 액세서리
                         </span>
                     </div>
-                    <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tight mb-6">
-                        ACCES<span className="gradient-text">SORIES</span>
+                    <h1 className="text-4xl md:text-6xl lg:text-8xl font-black uppercase tracking-tight mb-4 md:mb-6">
+                        {get('hero', 'title', 'ACCESSORIES').split('').map((char, i) => (
+                            <span key={i} className={i > 5 ? 'gradient-text' : ''}>{char}</span>
+                        ))}
                     </h1>
-                    <p className="text-lg text-white/50 max-w-xl">
-                        Lengkapi style kamu dengan aksesoris dari Kaos Kami.
-                        Dari ganci hingga tote bag, semua ada di sini!
+                    <p className="text-sm md:text-lg text-white/50 max-w-xl">
+                        {get('hero', 'description', 'Lengkapi style kamu dengan aksesoris dari Kaos Kami.')}
                     </p>
                 </div>
             </section>
 
             {/* Category Filter */}
-            <section className="px-6 pb-8 sticky top-20 z-40 bg-[#0a0a0a]/90 backdrop-blur-xl border-b border-white/5">
-                <div className="max-w-7xl mx-auto py-4">
+            <section className="px-4 md:px-6 pb-6 md:pb-8 sticky top-16 md:top-20 z-40 bg-[#0a0a0a]/90 backdrop-blur-xl border-b border-white/5">
+                <div className="max-w-7xl mx-auto py-3 md:py-4">
                     <div className="flex flex-wrap gap-2">
                         {accessoryCategories.map((cat) => (
                             <button
                                 key={cat}
                                 onClick={() => setFilter(cat)}
-                                className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border transition-all cursor-pointer ${filter === cat
+                                className={`px-3 md:px-4 py-1.5 md:py-2 text-[10px] md:text-xs font-bold uppercase tracking-wider border transition-all cursor-pointer ${filter === cat
                                         ? 'border-[#ff3366] bg-[#ff3366]/10 text-[#ff3366]'
                                         : 'border-white/10 text-white/40 hover:border-white/30 hover:text-white/70'
                                     }`}
@@ -88,7 +103,7 @@ export default function AccessoriesPage() {
             </section>
 
             {/* Products Grid */}
-            <section className="pb-24 px-6">
+            <section className="pb-16 md:pb-24 px-4 md:px-6">
                 <div className="max-w-7xl mx-auto">
                     {loading ? (
                         <div className="flex justify-center py-12">
@@ -99,7 +114,7 @@ export default function AccessoriesPage() {
                             Belum ada aksesoris.
                         </div>
                     ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
                             {filteredAccessories.map((item) => {
                                 const shopeeLink = item.purchase_links?.find(l => l.platform === 'Shopee')?.url;
                                 const tiktokLink = item.purchase_links?.find(l => l.platform === 'TikTok Shop')?.url;
@@ -120,46 +135,46 @@ export default function AccessoriesPage() {
                                                 />
                                             ) : (
                                                 <div className="absolute inset-0 flex items-center justify-center">
-                                                    <Sparkles className="w-12 h-12 text-[#ff3366]/20 group-hover:text-[#ff3366]/40 transition-colors" strokeWidth={1} />
+                                                    <Sparkles className="w-10 md:w-12 h-10 md:h-12 text-[#ff3366]/20 group-hover:text-[#ff3366]/40 transition-colors" strokeWidth={1} />
                                                 </div>
                                             )}
 
                                             {/* Category Tag */}
-                                            <div className="absolute top-3 left-3 px-2 py-1 bg-[#ff3366]/80 text-white text-[10px] font-bold uppercase tracking-wider">
+                                            <div className="absolute top-2 left-2 px-1.5 md:px-2 py-0.5 md:py-1 bg-[#ff3366]/80 text-white text-[8px] md:text-[10px] font-bold uppercase tracking-wider">
                                                 {item.category}
                                             </div>
 
                                             {/* Image count */}
                                             {item.images && item.images.length > 0 && (
-                                                <div className="absolute bottom-2 right-2 bg-black/60 px-2 py-1 text-xs text-white">
-                                                    +{item.images.length} foto
+                                                <div className="absolute bottom-2 right-2 bg-black/60 px-1.5 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs text-white">
+                                                    +{item.images.length}
                                                 </div>
                                             )}
                                         </div>
 
                                         {/* Info */}
-                                        <div className="p-4">
-                                            <h3 className="font-bold uppercase tracking-tight mb-1 group-hover:text-[#ff3366] transition-colors line-clamp-1">
+                                        <div className="p-3 md:p-4">
+                                            <h3 className="font-bold uppercase tracking-tight mb-1 text-xs md:text-sm group-hover:text-[#ff3366] transition-colors line-clamp-1">
                                                 {item.name}
                                             </h3>
-                                            <p className="text-xs text-white/40 mb-2 line-clamp-1">
+                                            <p className="text-[10px] md:text-xs text-white/40 mb-2 line-clamp-1">
                                                 {item.description}
                                             </p>
-                                            <p className="text-sm font-bold text-[#ff3366] mb-2">
+                                            <p className="text-xs md:text-sm font-bold text-[#ff3366] mb-2">
                                                 Rp {item.price.toLocaleString()}
                                             </p>
 
                                             {/* Purchase badges */}
                                             <div className="flex gap-1 mb-2">
                                                 {shopeeLink && (
-                                                    <span className="text-[9px] px-1.5 py-0.5 bg-orange-500/20 text-orange-400 font-bold">Shopee</span>
+                                                    <span className="text-[8px] md:text-[9px] px-1 md:px-1.5 py-0.5 bg-orange-500/20 text-orange-400 font-bold">Shopee</span>
                                                 )}
                                                 {tiktokLink && (
-                                                    <span className="text-[9px] px-1.5 py-0.5 bg-pink-500/20 text-pink-400 font-bold">TikTok</span>
+                                                    <span className="text-[8px] md:text-[9px] px-1 md:px-1.5 py-0.5 bg-pink-500/20 text-pink-400 font-bold">TikTok</span>
                                                 )}
                                             </div>
 
-                                            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#ff3366]">
+                                            <div className="flex items-center justify-between text-[10px] md:text-xs font-bold uppercase tracking-wider text-[#ff3366]">
                                                 <span>Detail</span>
                                                 <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                                             </div>
@@ -173,15 +188,15 @@ export default function AccessoriesPage() {
             </section>
 
             {/* CTA */}
-            <section className="py-16 px-6 border-t border-white/5">
+            <section className="py-12 md:py-16 px-4 md:px-6 border-t border-white/5">
                 <div className="max-w-7xl mx-auto text-center">
-                    <h2 className="text-3xl font-black uppercase tracking-tight mb-4">
+                    <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight mb-4">
                         CARI <span className="text-[#00d4ff]">KAOS</span> JUGA?
                     </h2>
-                    <p className="text-white/50 mb-8">
+                    <p className="text-white/50 mb-6 md:mb-8 text-sm md:text-base">
                         Jangan lupa lihat koleksi kaos streetwear kami!
                     </p>
-                    <Link href="/series" className="btn-urban">
+                    <Link href="/series" className="btn-urban text-sm md:text-base">
                         Lihat Koleksi
                     </Link>
                 </div>

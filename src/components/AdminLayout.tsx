@@ -13,12 +13,14 @@ import {
     LogOut,
     Menu,
     X,
-    Home
+    Home,
+    FileText
 } from 'lucide-react';
 import { useAdmin } from '@/contexts/AdminContext';
 
 const navItems = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/admin/pages', label: 'Pages', icon: FileText },
     { href: '/admin/series', label: 'Series', icon: Layers },
     { href: '/admin/products', label: 'Products', icon: Package },
     { href: '/admin/accessories', label: 'Accessories', icon: KeyRound },
