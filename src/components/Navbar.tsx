@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, X, Scan, ChevronDown, KeyRound, Layers, Info } from 'lucide-react';
+import { Menu, X, Scan, ChevronDown, KeyRound, Layers, Info, Search } from 'lucide-react';
+import { SearchModal } from './SearchModal';
 
 const seriesItems = [
     {
@@ -31,154 +32,195 @@ const seriesItems = [
 export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const [seriesOpen, setSeriesOpen] = useState(false);
+    const [searchOpen, setSearchOpen] = useState(false);
+
+    // Keyboard shortcut for search
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                setSearchOpen(true);
+            }
+            if (e.key === 'Escape') {
+                setSearchOpen(false);
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     return (
-        <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-white/5">
-            <div className="max-w-7xl mx-auto px-6">
-                <nav className="flex items-center justify-between h-20">
-                    {/* Logo */}
-                    <Link href="/" className="flex items-center gap-3 group">
-                        <span className="text-2xl font-black tracking-tight uppercase">
-                            KAOS<span className="text-[#00d4ff]">KAMI</span>
-                        </span>
-                        <span className="text-[10px] text-white/30 font-medium tracking-widest hidden sm:block">
-                            カオスカミ · 카오스카미
-                        </span>
-                    </Link>
+        <>
+            <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-white/5">
+                <div className="max-w-7xl mx-auto px-4 md:px-6">
+                    <nav className="flex items-center justify-between h-16 md:h-20">
+                        {/* Logo */}
+                        <Link href="/" className="flex items-center gap-2 md:gap-3 group">
+                            <span className="text-xl md:text-2xl font-black tracking-tight uppercase">
+                                KAOS<span className="text-[#00d4ff]">KAMI</span>
+                            </span>
+                            <span className="text-[8px] md:text-[10px] text-white/30 font-medium tracking-widest hidden sm:block">
+                                カオスカミ · 카오스카미
+                            </span>
+                        </Link>
 
-                    {/* Desktop Nav */}
-                    <div className="hidden lg:flex items-center gap-1">
-                        {/* Series Dropdown */}
-                        <div className="relative">
+                        {/* Desktop Nav */}
+                        <div className="hidden lg:flex items-center gap-1">
+                            {/* Search Button */}
                             <button
-                                onClick={() => setSeriesOpen(!seriesOpen)}
-                                onBlur={() => setTimeout(() => setSeriesOpen(false), 150)}
-                                className="flex items-center gap-2 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white/70 hover:text-white transition-colors"
+                                onClick={() => setSearchOpen(true)}
+                                className="flex items-center gap-2 px-3 py-2 text-sm text-white/50 hover:text-white border border-white/10 hover:border-white/30 transition-all mr-2"
                             >
-                                <Layers className="w-4 h-4" />
-                                Collections
-                                <ChevronDown className={`w-4 h-4 transition-transform ${seriesOpen ? 'rotate-180' : ''}`} />
+                                <Search className="w-4 h-4" />
+                                <span className="text-xs">Search</span>
+                                <kbd className="text-[10px] px-1.5 py-0.5 bg-white/5 border border-white/10 rounded text-white/30">⌘K</kbd>
                             </button>
 
-                            {seriesOpen && (
-                                <div className="absolute top-full left-0 mt-2 w-72 bg-[#141414] border border-white/10 shadow-2xl">
-                                    {seriesItems.map((item, index) => (
+                            {/* Series Dropdown */}
+                            <div className="relative">
+                                <button
+                                    onClick={() => setSeriesOpen(!seriesOpen)}
+                                    onBlur={() => setTimeout(() => setSeriesOpen(false), 150)}
+                                    className="flex items-center gap-2 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white/70 hover:text-white transition-colors"
+                                >
+                                    <Layers className="w-4 h-4" />
+                                    Collections
+                                    <ChevronDown className={`w-4 h-4 transition-transform ${seriesOpen ? 'rotate-180' : ''}`} />
+                                </button>
+
+                                {seriesOpen && (
+                                    <div className="absolute top-full left-0 mt-2 w-72 bg-[#141414] border border-white/10 shadow-2xl animate-slide-up">
+                                        {seriesItems.map((item, index) => (
+                                            <Link
+                                                key={item.id}
+                                                href={item.href}
+                                                className="group block p-4 border-b border-white/5 last:border-0 hover:bg-white/5 transition-all"
+                                                onClick={() => setSeriesOpen(false)}
+                                            >
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <span className="text-[10px] text-[#00d4ff] font-bold tracking-widest">
+                                                        {item.subtitle}
+                                                    </span>
+                                                    <span className="text-[10px] text-white/30">
+                                                        0{index + 1}
+                                                    </span>
+                                                </div>
+                                                <h4 className="font-bold uppercase tracking-wide group-hover:text-[#00d4ff] transition-colors">
+                                                    {item.title}
+                                                </h4>
+                                                <p className="text-xs text-white/40 mt-1">{item.description}</p>
+                                            </Link>
+                                        ))}
                                         <Link
-                                            key={item.id}
-                                            href={item.href}
-                                            className="group block p-4 border-b border-white/5 last:border-0 hover:bg-white/5 transition-all"
+                                            href="/series"
+                                            className="block p-3 text-center text-xs font-bold uppercase tracking-wider text-white/50 hover:text-[#00d4ff] hover:bg-white/5 transition-all"
                                             onClick={() => setSeriesOpen(false)}
                                         >
-                                            <div className="flex items-center justify-between mb-1">
-                                                <span className="text-[10px] text-[#00d4ff] font-bold tracking-widest">
-                                                    {item.subtitle}
-                                                </span>
-                                                <span className="text-[10px] text-white/30">
-                                                    0{index + 1}
-                                                </span>
-                                            </div>
-                                            <h4 className="font-bold uppercase tracking-wide group-hover:text-[#00d4ff] transition-colors">
-                                                {item.title}
-                                            </h4>
-                                            <p className="text-xs text-white/40 mt-1">{item.description}</p>
+                                            View All →
                                         </Link>
-                                    ))}
-                                    <Link
-                                        href="/series"
-                                        className="block p-3 text-center text-xs font-bold uppercase tracking-wider text-white/50 hover:text-[#00d4ff] hover:bg-white/5 transition-all"
-                                        onClick={() => setSeriesOpen(false)}
-                                    >
-                                        View All →
-                                    </Link>
-                                </div>
-                            )}
-                        </div>
-
-                        <Link
-                            href="/accessories"
-                            className="flex items-center gap-2 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white/70 hover:text-[#ff3366] transition-colors"
-                        >
-                            <KeyRound className="w-4 h-4" />
-                            Accessories
-                        </Link>
-
-                        <Link
-                            href="/about"
-                            className="flex items-center gap-2 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white/70 hover:text-[#bbff00] transition-colors"
-                        >
-                            <Info className="w-4 h-4" />
-                            About
-                        </Link>
-
-                        <Link
-                            href="/scanner"
-                            className="flex items-center gap-2 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white/70 hover:text-[#00d4ff] transition-colors"
-                        >
-                            <Scan className="w-4 h-4" />
-                            Scan
-                        </Link>
-                    </div>
-
-                    {/* Mobile Menu Button */}
-                    <button
-                        className="lg:hidden p-2 text-white/70 hover:text-white transition-colors"
-                        onClick={() => setIsOpen(!isOpen)}
-                        aria-label="Menu"
-                    >
-                        {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                    </button>
-                </nav>
-
-                {/* Mobile Nav */}
-                {isOpen && (
-                    <div className="lg:hidden py-8 border-t border-white/5">
-                        <div className="flex flex-col gap-2">
-                            <span className="text-[10px] text-[#00d4ff] font-bold uppercase tracking-widest mb-2">
-                                コレクション · 컬렉션
-                            </span>
-                            {seriesItems.map((item) => (
-                                <Link
-                                    key={item.id}
-                                    href={item.href}
-                                    className="py-3 text-xl font-black uppercase tracking-wide hover:text-[#00d4ff] transition-colors"
-                                    onClick={() => setIsOpen(false)}
-                                >
-                                    {item.title}
-                                </Link>
-                            ))}
-
-                            <div className="h-px bg-white/10 my-4" />
+                                    </div>
+                                )}
+                            </div>
 
                             <Link
                                 href="/accessories"
-                                className="py-3 text-xl font-black uppercase tracking-wide flex items-center gap-3 hover:text-[#ff3366] transition-colors"
-                                onClick={() => setIsOpen(false)}
+                                className="flex items-center gap-2 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white/70 hover:text-[#ff3366] transition-colors"
                             >
-                                <KeyRound className="w-5 h-5" />
+                                <KeyRound className="w-4 h-4" />
                                 Accessories
                             </Link>
 
                             <Link
                                 href="/about"
-                                className="py-3 text-xl font-black uppercase tracking-wide flex items-center gap-3 hover:text-[#bbff00] transition-colors"
-                                onClick={() => setIsOpen(false)}
+                                className="flex items-center gap-2 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white/70 hover:text-[#bbff00] transition-colors"
                             >
-                                <Info className="w-5 h-5" />
+                                <Info className="w-4 h-4" />
                                 About
                             </Link>
 
                             <Link
                                 href="/scanner"
-                                className="py-3 text-xl font-black uppercase tracking-wide flex items-center gap-3 hover:text-[#00d4ff] transition-colors"
-                                onClick={() => setIsOpen(false)}
+                                className="flex items-center gap-2 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white/70 hover:text-[#00d4ff] transition-colors"
                             >
-                                <Scan className="w-5 h-5" />
-                                Scan QR
+                                <Scan className="w-4 h-4" />
+                                Scan
                             </Link>
                         </div>
-                    </div>
-                )}
-            </div>
-        </header>
+
+                        {/* Mobile: Search + Menu */}
+                        <div className="flex items-center gap-2 lg:hidden">
+                            <button
+                                onClick={() => setSearchOpen(true)}
+                                className="p-2 text-white/70 hover:text-white transition-colors"
+                                aria-label="Search"
+                            >
+                                <Search className="w-5 h-5" />
+                            </button>
+                            <button
+                                className="p-2 text-white/70 hover:text-white transition-colors"
+                                onClick={() => setIsOpen(!isOpen)}
+                                aria-label="Menu"
+                            >
+                                {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                            </button>
+                        </div>
+                    </nav>
+
+                    {/* Mobile Nav */}
+                    {isOpen && (
+                        <div className="lg:hidden py-6 border-t border-white/5 animate-slide-up">
+                            <div className="flex flex-col gap-2">
+                                <span className="text-[10px] text-[#00d4ff] font-bold uppercase tracking-widest mb-2">
+                                    コレクション · 컬렉션
+                                </span>
+                                {seriesItems.map((item) => (
+                                    <Link
+                                        key={item.id}
+                                        href={item.href}
+                                        className="py-2 text-lg font-black uppercase tracking-wide hover:text-[#00d4ff] transition-colors"
+                                        onClick={() => setIsOpen(false)}
+                                    >
+                                        {item.title}
+                                    </Link>
+                                ))}
+
+                                <div className="h-px bg-white/10 my-3" />
+
+                                <Link
+                                    href="/accessories"
+                                    className="py-2 text-lg font-black uppercase tracking-wide flex items-center gap-3 hover:text-[#ff3366] transition-colors"
+                                    onClick={() => setIsOpen(false)}
+                                >
+                                    <KeyRound className="w-5 h-5" />
+                                    Accessories
+                                </Link>
+
+                                <Link
+                                    href="/about"
+                                    className="py-2 text-lg font-black uppercase tracking-wide flex items-center gap-3 hover:text-[#bbff00] transition-colors"
+                                    onClick={() => setIsOpen(false)}
+                                >
+                                    <Info className="w-5 h-5" />
+                                    About
+                                </Link>
+
+                                <Link
+                                    href="/scanner"
+                                    className="py-2 text-lg font-black uppercase tracking-wide flex items-center gap-3 hover:text-[#00d4ff] transition-colors"
+                                    onClick={() => setIsOpen(false)}
+                                >
+                                    <Scan className="w-5 h-5" />
+                                    Scan QR
+                                </Link>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </header>
+
+            {/* Search Modal */}
+            <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
+        </>
     );
 }

@@ -1,0 +1,10 @@
+# Crawlers
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://kaoskami.com/sitemap.xml
+
+# Disallow admin
+Disallow: /admin
+Disallow: /api
