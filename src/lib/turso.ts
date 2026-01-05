@@ -1,4 +1,4 @@
-import { createClient, Client } from '@libsql/client';
+import { createClient, Client, InStatement, ResultSet, InArgs } from '@libsql/client';
 
 let tursoClient: Client | null = null;
 
@@ -22,10 +22,11 @@ function getTursoClient(): Client {
   return tursoClient;
 }
 
-// Export a proxy object that lazily creates the client
+// Export a proxy object that lazily creates the client with proper typing
 export const turso = {
-  execute: (...args: Parameters<Client['execute']>) => getTursoClient().execute(...args),
-  batch: (...args: Parameters<Client['batch']>) => getTursoClient().batch(...args),
+  execute: (stmt: InStatement): Promise<ResultSet> => getTursoClient().execute(stmt),
+  batch: (stmts: InStatement[], mode?: "write" | "read" | "deferred"): Promise<ResultSet[]> =>
+    getTursoClient().batch(stmts, mode),
 };
 
 // Helper types
