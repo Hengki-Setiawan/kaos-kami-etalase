@@ -15,12 +15,14 @@ import {
     X,
     Home,
     FileText,
-    MessageSquare
+    MessageSquare,
+    BarChart3
 } from 'lucide-react';
 import { useAdmin } from '@/contexts/AdminContext';
 
 const navItems = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
     { href: '/admin/pages', label: 'Pages', icon: FileText },
     { href: '/admin/series', label: 'Series', icon: Layers },
     { href: '/admin/products', label: 'Products', icon: Package },
