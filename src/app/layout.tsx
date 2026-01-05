@@ -9,7 +9,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Kaos Kami — Streetwear Anime & Music",
+    default: "Kaos Kami",
     template: "%s | Kaos Kami"
   },
   description: "Streetwear dengan sentuhan anime & musik. Koleksi kaos eksklusif dengan QR label digital. Temukan style unikmu!",
@@ -27,20 +27,20 @@ export const metadata: Metadata = {
     locale: "id_ID",
     url: "https://kaoskami.com",
     siteName: "Kaos Kami",
-    title: "Kaos Kami — Streetwear Anime & Music",
+    title: "Kaos Kami",
     description: "Streetwear dengan sentuhan anime & musik. Koleksi kaos eksklusif dengan QR label digital.",
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Kaos Kami - Streetwear Anime & Music"
+        alt: "Kaos Kami"
       }
     ]
   },
   twitter: {
     card: "summary_large_image",
-    title: "Kaos Kami — Streetwear Anime & Music",
+    title: "Kaos Kami",
     description: "Streetwear dengan sentuhan anime & musik.",
     images: ["/og-image.jpg"]
   },
