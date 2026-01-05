@@ -70,7 +70,10 @@ export default function LabelPage() {
         }
     }, [code]);
 
-    const allImages = label ? [label.image_url, ...(label.images || [])].filter(Boolean) : [];
+    // Use images array if available, otherwise use image_url. Deduplicate to avoid showing same image twice.
+    const allImages = label ?
+        [...new Set([...(label.images || []), label.image_url].filter(Boolean))]
+        : [];
 
     const nextImage = () => {
         setCurrentImage((prev) => (prev + 1) % allImages.length);
@@ -115,11 +118,11 @@ export default function LabelPage() {
                 {allImages.length > 0 ? (
                     <div className="relative bg-[#141414]">
                         {/* Main Image */}
-                        <div className="relative aspect-[4/3] md:aspect-[16/9] max-h-[600px] overflow-hidden">
+                        <div className="relative aspect-[4/3] md:aspect-[16/9] max-h-[450px] overflow-hidden flex items-center justify-center">
                             <img
                                 src={allImages[currentImage]}
                                 alt={label.name}
-                                className="w-full h-full object-contain animate-fade-in"
+                                className="max-w-full max-h-full object-contain animate-fade-in mx-auto"
                             />
 
                             {/* Image navigation arrows */}
@@ -153,8 +156,8 @@ export default function LabelPage() {
                                             key={i}
                                             onClick={() => setCurrentImage(i)}
                                             className={`flex-shrink-0 w-16 h-16 md:w-20 md:h-20 border-2 overflow-hidden transition-all ${i === currentImage
-                                                    ? 'border-[#00d4ff] opacity-100'
-                                                    : 'border-white/20 opacity-60 hover:opacity-100'
+                                                ? 'border-[#00d4ff] opacity-100'
+                                                : 'border-white/20 opacity-60 hover:opacity-100'
                                                 }`}
                                         >
                                             <img
