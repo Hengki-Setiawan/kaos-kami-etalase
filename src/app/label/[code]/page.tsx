@@ -113,42 +113,60 @@ export default function LabelPage() {
             {/* Hero Image */}
             <section className="relative">
                 {allImages.length > 0 ? (
-                    <div className="relative aspect-square md:aspect-[16/9] lg:aspect-[21/9] max-h-[500px] overflow-hidden bg-[#141414]">
-                        <img
-                            src={allImages[currentImage]}
-                            alt={label.name}
-                            className="w-full h-full object-cover animate-fade-in"
-                        />
+                    <div className="relative bg-[#141414]">
+                        {/* Main Image */}
+                        <div className="relative aspect-[4/3] md:aspect-[16/9] max-h-[600px] overflow-hidden">
+                            <img
+                                src={allImages[currentImage]}
+                                alt={label.name}
+                                className="w-full h-full object-contain animate-fade-in"
+                            />
 
-                        {/* Image navigation */}
+                            {/* Image navigation arrows */}
+                            {allImages.length > 1 && (
+                                <>
+                                    <button
+                                        onClick={prevImage}
+                                        className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/60 flex items-center justify-center hover:bg-black/80 transition-colors rounded-full"
+                                    >
+                                        <ChevronLeft className="w-6 h-6" />
+                                    </button>
+                                    <button
+                                        onClick={nextImage}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/60 flex items-center justify-center hover:bg-black/80 transition-colors rounded-full"
+                                    >
+                                        <ChevronRight className="w-6 h-6" />
+                                    </button>
+                                </>
+                            )}
+
+                            {/* Gradient overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent pointer-events-none" />
+                        </div>
+
+                        {/* Thumbnail Navigation */}
                         {allImages.length > 1 && (
-                            <>
-                                <button
-                                    onClick={prevImage}
-                                    className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 flex items-center justify-center hover:bg-black/80 transition-colors"
-                                >
-                                    <ChevronLeft className="w-6 h-6" />
-                                </button>
-                                <button
-                                    onClick={nextImage}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 flex items-center justify-center hover:bg-black/80 transition-colors"
-                                >
-                                    <ChevronRight className="w-6 h-6" />
-                                </button>
-                                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                                    {allImages.map((_, i) => (
+                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent pt-8 pb-4">
+                                <div className="flex justify-center gap-2 px-4 overflow-x-auto">
+                                    {allImages.map((img, i) => (
                                         <button
                                             key={i}
                                             onClick={() => setCurrentImage(i)}
-                                            className={`w-2 h-2 rounded-full transition-colors ${i === currentImage ? 'bg-[#00d4ff]' : 'bg-white/30'}`}
-                                        />
+                                            className={`flex-shrink-0 w-16 h-16 md:w-20 md:h-20 border-2 overflow-hidden transition-all ${i === currentImage
+                                                    ? 'border-[#00d4ff] opacity-100'
+                                                    : 'border-white/20 opacity-60 hover:opacity-100'
+                                                }`}
+                                        >
+                                            <img
+                                                src={img}
+                                                alt={`Thumbnail ${i + 1}`}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </button>
                                     ))}
                                 </div>
-                            </>
+                            </div>
                         )}
-
-                        {/* Gradient overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
                     </div>
                 ) : (
                     <div className="aspect-square md:aspect-[16/9] max-h-[400px] bg-[#141414] flex items-center justify-center">
