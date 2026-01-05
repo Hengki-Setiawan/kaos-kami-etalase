@@ -37,15 +37,16 @@ export default function ProductDetailPage() {
     const allImages = product ? [product.image_url, ...(product.images || [])].filter(Boolean) : [];
 
     // Auto-rotate images
-    useEffect(() => {
-        if (allImages.length <= 1) return;
-
-        const interval = setInterval(() => {
-            setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
-        }, 3000); // Change image every 3 seconds
-
-        return () => clearInterval(interval);
-    }, [allImages.length]);
+    // Auto-rotate images removed as per request
+    // useEffect(() => {
+    //     if (allImages.length <= 1) return;
+    //
+    //     const interval = setInterval(() => {
+    //         setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
+    //     }, 3000); // Change image every 3 seconds
+    //
+    //     return () => clearInterval(interval);
+    // }, [allImages.length]);
 
     useEffect(() => {
         const fetchProduct = async () => {

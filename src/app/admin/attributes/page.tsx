@@ -15,6 +15,8 @@ const ATTRIBUTE_TYPES = [
     { id: 'model', label: 'Models (Jenis Kaos)', icon: Shirt },
     { id: 'material', label: 'Materials (Jenis Katun)', icon: Scissors },
     { id: 'size', label: 'Sizes', icon: Ruler },
+    { id: 'color', label: 'Colors', icon: Tag },
+    { id: 'care', label: 'Care Instructions', icon: Tag },
 ];
 
 export default function AdminAttributesPage() {

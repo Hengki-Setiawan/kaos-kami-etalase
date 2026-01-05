@@ -4,13 +4,14 @@ import { useState, useEffect, useRef } from 'react';
 
 import {
     Plus, QrCode, Trash2, Edit2, Loader2, RefreshCw, Check, X, Eye,
-    Download, Copy, ExternalLink, ChevronDown, ChevronUp
+    Download, Copy, ExternalLink, ChevronDown, ChevronUp, Search
 } from 'lucide-react';
 import QRCode from 'qrcode';
 
 interface Label {
     id: string;
     code: string;
+    product_id: string;
     name: string;
     image_url: string;
     images: string[];
@@ -22,8 +23,22 @@ interface Label {
     story: string;
     care_instructions: { icon: string; text: string }[];
     purchase_links: { platform: string; url: string }[];
+    qr_link?: string;
     is_active: boolean;
     scan_count: number;
+}
+
+interface Product {
+    id: string;
+    name: string;
+    image_url?: string;
+    images?: string[];
+    price?: number;
+    description?: string;
+    material?: string;
+    model?: string;
+    sizes?: string;
+    purchase_links?: { platform: string; url: string }[];
 }
 
 const careIconOptions = [
@@ -37,6 +52,14 @@ const careIconOptions = [
 
 export default function AdminLabelsPage() {
     const [labels, setLabels] = useState<Label[]>([]);
+    const [products, setProducts] = useState<Product[]>([]);
+    const [attributes, setAttributes] = useState<{
+        sizes: string[];
+        materials: string[];
+        colors: string[];
+        care: string[];
+    }>({ sizes: [], materials: [], colors: [], care: [] });
+
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -46,8 +69,10 @@ export default function AdminLabelsPage() {
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState('');
     const [form, setForm] = useState({
+        product_id: '',
         name: '',
         image_url: '',
+        images: [] as string[],
         size: '',
         price: 0,
         material: '',
@@ -56,22 +81,45 @@ export default function AdminLabelsPage() {
         story: '',
         care_instructions: [] as { icon: string; text: string }[],
         purchase_links: [] as { platform: string; url: string }[],
+        qr_link: ''
     });
 
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
     useEffect(() => {
-        fetchLabels();
+        fetchData();
     }, []);
 
-    const fetchLabels = async () => {
+    const fetchData = async () => {
         setLoading(true);
         try {
-            const res = await fetch('/api/labels');
-            const data = await res.json();
-            setLabels(Array.isArray(data) ? data : []);
+            const [labelsRes, productsRes, sizesRes, materialsRes, colorsRes, careRes] = await Promise.all([
+                fetch('/api/labels'),
+                fetch('/api/products'),
+                fetch('/api/attributes?type=size'),
+                fetch('/api/attributes?type=material'),
+                fetch('/api/attributes?type=color'),
+                fetch('/api/attributes?type=care')
+            ]);
+
+            const labelsData = await labelsRes.json();
+            const productsData = await productsRes.json();
+            const sizesData = await sizesRes.json();
+            const materialsData = await materialsRes.json();
+            const colorsData = await colorsRes.json();
+            const careData = await careRes.json();
+
+            setLabels(Array.isArray(labelsData) ? labelsData : []);
+            setProducts(Array.isArray(productsData) ? productsData : []);
+            setAttributes({
+                sizes: Array.isArray(sizesData) ? sizesData.map((a: any) => a.value) : [],
+                materials: Array.isArray(materialsData) ? materialsData.map((a: any) => a.value) : [],
+                colors: Array.isArray(colorsData) ? colorsData.map((a: any) => a.value) : [],
+                care: Array.isArray(careData) ? careData.map((a: any) => a.label) : [], // Use label for care instructions
+            });
+
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error fetching data:', error);
         } finally {
             setLoading(false);
         }
@@ -81,10 +129,33 @@ export default function AdminLabelsPage() {
         setLoading(true);
         try {
             await fetch('/api/migrate/create-labels');
-            await fetchLabels();
+            await fetchData();
             setMessage('Migration berhasil!');
         } catch (error) {
             setMessage('Migration gagal');
+        }
+    };
+
+    const handleProductSelect = (productId: string) => {
+        const product = products.find(p => p.id === productId);
+        if (product) {
+            // Combine main image and additional images
+            const allImages = [product.image_url, ...(product.images || [])].filter(Boolean) as string[];
+
+            setForm(prev => ({
+                ...prev,
+                product_id: product.id,
+                name: product.name,
+                image_url: product.image_url || '',
+                images: allImages,
+                price: product.price || 0,
+                description: product.description || '',
+                material: product.material || '',
+                // If product has purchase links, map them
+                purchase_links: product.purchase_links || []
+            }));
+        } else {
+            setForm(prev => ({ ...prev, product_id: '', images: [] }));
         }
     };
 
@@ -104,7 +175,7 @@ export default function AdminLabelsPage() {
             if (res.ok) {
                 setMessage(editingId ? 'Label diupdate!' : 'Label dibuat!');
                 resetForm();
-                fetchLabels();
+                fetchData();
             }
         } catch (error) {
             setMessage('Error saving');
@@ -118,15 +189,18 @@ export default function AdminLabelsPage() {
         setShowForm(false);
         setEditingId(null);
         setForm({
-            name: '', image_url: '', size: '', price: 0, material: '', color: '',
-            description: '', story: '', care_instructions: [], purchase_links: []
+            product_id: '',
+            name: '', image_url: '', images: [], size: '', price: 0, material: '', color: '',
+            description: '', story: '', care_instructions: [], purchase_links: [], qr_link: ''
         });
     };
 
     const handleEdit = (label: Label) => {
         setForm({
+            product_id: label.product_id || '',
             name: label.name,
             image_url: label.image_url,
+            images: label.images || [],
             size: label.size,
             price: label.price,
             material: label.material,
@@ -134,7 +208,8 @@ export default function AdminLabelsPage() {
             description: label.description,
             story: label.story,
             care_instructions: label.care_instructions || [],
-            purchase_links: label.purchase_links || []
+            purchase_links: label.purchase_links || [],
+            qr_link: label.qr_link || ''
         });
         setEditingId(label.id);
         setShowForm(true);
@@ -144,7 +219,7 @@ export default function AdminLabelsPage() {
         if (!confirm('Hapus label ini?')) return;
         try {
             await fetch(`/api/labels?id=${id}`, { method: 'DELETE' });
-            fetchLabels();
+            fetchData();
             setMessage('Label dihapus!');
             setTimeout(() => setMessage(''), 3000);
         } catch (error) {
@@ -161,6 +236,21 @@ export default function AdminLabelsPage() {
         });
         setQrDataUrl(qr);
         setQrModalId(label.id);
+
+        // Save QR link to DB if not exists
+        if (!label.qr_link) {
+            try {
+                await fetch('/api/labels', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: label.id, qr_link: url })
+                });
+                // Update local state without refetching everything
+                setLabels(prev => prev.map(l => l.id === label.id ? { ...l, qr_link: url } : l));
+            } catch (err) {
+                console.error('Failed to save QR link', err);
+            }
+        }
     };
 
     const downloadQR = (code: string) => {
@@ -256,6 +346,24 @@ export default function AdminLabelsPage() {
                         {editingId ? 'Edit Label' : 'New Label'}
                     </h3>
                     <form onSubmit={handleSubmit} className="space-y-4">
+                        {/* Product Selection */}
+                        <div className="mb-4 p-4 bg-white/5 rounded border border-white/10">
+                            <label className="block text-sm text-[#00d4ff] font-bold mb-2">
+                                <Search className="w-4 h-4 inline mr-2" />
+                                Select Product (Auto-fill)
+                            </label>
+                            <select
+                                value={form.product_id}
+                                onChange={(e) => handleProductSelect(e.target.value)}
+                                className="w-full bg-[#1a1a1e] border border-white/10 px-4 py-2 text-white focus:border-[#00d4ff] focus:outline-none"
+                            >
+                                <option value="">-- Choose a Product --</option>
+                                {products.map(p => (
+                                    <option key={p.id} value={p.id}>{p.name}</option>
+                                ))}
+                            </select>
+                        </div>
+
                         <div className="grid md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm text-white/40 mb-1">Nama Produk *</label>
@@ -263,7 +371,7 @@ export default function AdminLabelsPage() {
                                     type="text"
                                     value={form.name}
                                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                    className="w-full bg-white/5 border border-white/10 px-4 py-2 text-white"
+                                    className="w-full bg-[#1a1a1e] border border-white/10 px-4 py-2 text-white focus:border-[#00d4ff] focus:outline-none"
                                     required
                                 />
                             </div>
@@ -273,7 +381,7 @@ export default function AdminLabelsPage() {
                                     type="number"
                                     value={form.price}
                                     onChange={(e) => setForm({ ...form, price: parseInt(e.target.value) || 0 })}
-                                    className="w-full bg-white/5 border border-white/10 px-4 py-2 text-white"
+                                    className="w-full bg-[#1a1a1e] border border-white/10 px-4 py-2 text-white focus:border-[#00d4ff] focus:outline-none"
                                 />
                             </div>
                         </div>
@@ -283,34 +391,39 @@ export default function AdminLabelsPage() {
                                 <select
                                     value={form.size}
                                     onChange={(e) => setForm({ ...form, size: e.target.value })}
-                                    className="w-full bg-white/5 border border-white/10 px-4 py-2 text-white"
+                                    className="w-full bg-[#1a1a1e] border border-white/10 px-4 py-2 text-white focus:border-[#00d4ff] focus:outline-none"
                                 >
                                     <option value="">Pilih</option>
-                                    <option value="S">S</option>
-                                    <option value="M">M</option>
-                                    <option value="L">L</option>
-                                    <option value="XL">XL</option>
-                                    <option value="XXL">XXL</option>
+                                    {attributes.sizes.map(s => (
+                                        <option key={s} value={s}>{s}</option>
+                                    ))}
                                 </select>
                             </div>
                             <div>
                                 <label className="block text-sm text-white/40 mb-1">Color</label>
-                                <input
-                                    type="text"
+                                <select
                                     value={form.color}
                                     onChange={(e) => setForm({ ...form, color: e.target.value })}
-                                    className="w-full bg-white/5 border border-white/10 px-4 py-2 text-white"
-                                />
+                                    className="w-full bg-[#1a1a1e] border border-white/10 px-4 py-2 text-white focus:border-[#00d4ff] focus:outline-none"
+                                >
+                                    <option value="">Pilih</option>
+                                    {attributes.colors.map(c => (
+                                        <option key={c} value={c}>{c}</option>
+                                    ))}
+                                </select>
                             </div>
                             <div className="md:col-span-2">
                                 <label className="block text-sm text-white/40 mb-1">Material</label>
-                                <input
-                                    type="text"
+                                <select
                                     value={form.material}
                                     onChange={(e) => setForm({ ...form, material: e.target.value })}
-                                    className="w-full bg-white/5 border border-white/10 px-4 py-2 text-white"
-                                    placeholder="Cotton Combed 30s"
-                                />
+                                    className="w-full bg-[#1a1a1e] border border-white/10 px-4 py-2 text-white focus:border-[#00d4ff] focus:outline-none"
+                                >
+                                    <option value="">Pilih</option>
+                                    {attributes.materials.map(m => (
+                                        <option key={m} value={m}>{m}</option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
                         <div>
@@ -319,7 +432,7 @@ export default function AdminLabelsPage() {
                                 type="text"
                                 value={form.image_url}
                                 onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-                                className="w-full bg-white/5 border border-white/10 px-4 py-2 text-white"
+                                className="w-full bg-[#1a1a1e] border border-white/10 px-4 py-2 text-white focus:border-[#00d4ff] focus:outline-none"
                             />
                         </div>
                         <div>
@@ -328,7 +441,7 @@ export default function AdminLabelsPage() {
                                 value={form.description}
                                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                                 rows={2}
-                                className="w-full bg-white/5 border border-white/10 px-4 py-2 text-white"
+                                className="w-full bg-[#1a1a1e] border border-white/10 px-4 py-2 text-white focus:border-[#00d4ff] focus:outline-none"
                             />
                         </div>
                         <div>
@@ -337,7 +450,7 @@ export default function AdminLabelsPage() {
                                 value={form.story}
                                 onChange={(e) => setForm({ ...form, story: e.target.value })}
                                 rows={2}
-                                className="w-full bg-white/5 border border-white/10 px-4 py-2 text-white"
+                                className="w-full bg-[#1a1a1e] border border-white/10 px-4 py-2 text-white focus:border-[#00d4ff] focus:outline-none"
                             />
                         </div>
 
@@ -355,19 +468,30 @@ export default function AdminLabelsPage() {
                                         <select
                                             value={ci.icon}
                                             onChange={(e) => updateCareInstruction(i, 'icon', e.target.value)}
-                                            className="bg-white/5 border border-white/10 px-2 py-1 text-sm text-white w-32"
+                                            className="bg-[#1a1a1e] border border-white/10 px-2 py-1 text-sm text-white w-32 focus:border-[#00d4ff] focus:outline-none"
                                         >
                                             {careIconOptions.map(opt => (
                                                 <option key={opt.value} value={opt.value}>{opt.label}</option>
                                             ))}
                                         </select>
-                                        <input
-                                            type="text"
-                                            value={ci.text}
-                                            onChange={(e) => updateCareInstruction(i, 'text', e.target.value)}
-                                            className="flex-1 bg-white/5 border border-white/10 px-2 py-1 text-sm text-white"
-                                            placeholder="Instruksi..."
-                                        />
+
+                                        {/* Care Instruction Text Dropdown */}
+                                        <div className="flex-1 relative">
+                                            <input
+                                                type="text"
+                                                value={ci.text}
+                                                onChange={(e) => updateCareInstruction(i, 'text', e.target.value)}
+                                                className="w-full bg-[#1a1a1e] border border-white/10 px-2 py-1 text-sm text-white focus:border-[#00d4ff] focus:outline-none"
+                                                placeholder="Instruksi..."
+                                                list={`care-options-${i}`}
+                                            />
+                                            <datalist id={`care-options-${i}`}>
+                                                {attributes.care.map((c, idx) => (
+                                                    <option key={idx} value={c} />
+                                                ))}
+                                            </datalist>
+                                        </div>
+
                                         <button type="button" onClick={() => removeCareInstruction(i)} className="text-red-400 hover:text-red-300">
                                             <X className="w-4 h-4" />
                                         </button>
@@ -390,7 +514,7 @@ export default function AdminLabelsPage() {
                                         <select
                                             value={pl.platform}
                                             onChange={(e) => updatePurchaseLink(i, 'platform', e.target.value)}
-                                            className="bg-white/5 border border-white/10 px-2 py-1 text-sm text-white w-32"
+                                            className="bg-[#1a1a1e] border border-white/10 px-2 py-1 text-sm text-white w-32 focus:border-[#00d4ff] focus:outline-none"
                                         >
                                             <option value="Shopee">Shopee</option>
                                             <option value="TikTok Shop">TikTok Shop</option>
@@ -401,7 +525,7 @@ export default function AdminLabelsPage() {
                                             type="text"
                                             value={pl.url}
                                             onChange={(e) => updatePurchaseLink(i, 'url', e.target.value)}
-                                            className="flex-1 bg-white/5 border border-white/10 px-2 py-1 text-sm text-white"
+                                            className="flex-1 bg-[#1a1a1e] border border-white/10 px-2 py-1 text-sm text-white focus:border-[#00d4ff] focus:outline-none"
                                             placeholder="https://..."
                                         />
                                         <button type="button" onClick={() => removePurchaseLink(i)} className="text-red-400 hover:text-red-300">
@@ -533,6 +657,10 @@ export default function AdminLabelsPage() {
                                         <div>
                                             <span className="text-white/40">Care Instructions:</span>
                                             <span className="ml-2">{label.care_instructions?.length || 0} items</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-white/40">Images:</span>
+                                            <span className="ml-2">{label.images?.length || 0} images</span>
                                         </div>
                                     </div>
                                     {label.description && (

@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
             story: row.story,
             care_instructions: row.care_instructions ? JSON.parse(row.care_instructions as string) : [],
             purchase_links: row.purchase_links ? JSON.parse(row.purchase_links as string) : [],
+            qr_link: row.qr_link,
             is_active: Boolean(row.is_active),
             scan_count: Number(row.scan_count),
             last_scanned_at: row.last_scanned_at,
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const {
             name, product_id, image_url, images, size, price,
-            material, color, description, story, care_instructions, purchase_links
+            material, color, description, story, care_instructions, purchase_links, qr_link
         } = body;
 
         if (!name) {
@@ -61,14 +62,15 @@ export async function POST(request: NextRequest) {
         const code = generateCode();
 
         await turso.execute({
-            sql: `INSERT INTO labels (id, code, product_id, name, image_url, images, size, price, material, color, description, story, care_instructions, purchase_links) 
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            sql: `INSERT INTO labels (id, code, product_id, name, image_url, images, size, price, material, color, description, story, care_instructions, purchase_links, qr_link) 
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             args: [
                 id, code, product_id || '', name, image_url || '',
                 JSON.stringify(images || []), size || '', price || 0,
                 material || '', color || '', description || '', story || '',
                 JSON.stringify(care_instructions || []),
-                JSON.stringify(purchase_links || [])
+                JSON.stringify(purchase_links || []),
+                qr_link || ''
             ]
         });
 
@@ -93,7 +95,7 @@ export async function PUT(request: NextRequest) {
         const values = [];
 
         // Build dynamic update query
-        const allowedFields = ['name', 'product_id', 'image_url', 'images', 'size', 'price', 'material', 'color', 'description', 'story', 'care_instructions', 'purchase_links', 'is_active'];
+        const allowedFields = ['name', 'product_id', 'image_url', 'images', 'size', 'price', 'material', 'color', 'description', 'story', 'care_instructions', 'purchase_links', 'qr_link', 'is_active'];
 
         for (const field of allowedFields) {
             if (updates[field] !== undefined) {
