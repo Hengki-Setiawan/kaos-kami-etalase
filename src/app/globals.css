@@ -1,26 +1,605 @@
 @import "tailwindcss";
 
+/* ===== STREETWEAR URBAN THEME ===== */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0a;
+  --surface: #141414;
+  --foreground: #ffffff;
+  --muted: #888888;
+  --accent: #00d4ff;
+  --accent-pink: #ff3366;
+  --accent-lime: #bbff00;
+  --border: #222222;
+  --subtle: #1a1a1a;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ===== BASE STYLES ===== */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--background);
+}
+
+/* ===== URBAN BACKGROUND PATTERNS ===== */
+.bg-urban {
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(0, 212, 255, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(255, 51, 102, 0.06) 0%, transparent 50%),
+    var(--background);
+}
+
+.bg-grid-urban {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.bg-noise {
+  position: relative;
+}
+
+.bg-noise::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.04;
+  pointer-events: none;
+}
+
+/* ===== TYPOGRAPHY ===== */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.display-text {
+  font-size: clamp(3rem, 12vw, 10rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 0.85;
+  text-transform: uppercase;
+}
+
+.body-text {
+  font-size: 1rem;
+  color: var(--muted);
+  font-weight: 400;
+  max-width: 50ch;
+}
+
+/* Japanese accent text */
+.jp-text {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-weight: 400;
+}
+
+.jp-accent {
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  opacity: 0.5;
+}
+
+/* ===== NEON GLOW EFFECTS ===== */
+.glow-cyan {
+  text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+}
+
+.glow-pink {
+  text-shadow: 0 0 20px rgba(255, 51, 102, 0.5);
+}
+
+.glow-lime {
+  text-shadow: 0 0 20px rgba(187, 255, 0, 0.5);
+}
+
+.box-glow-cyan {
+  box-shadow: 0 0 30px rgba(0, 212, 255, 0.2);
+}
+
+.box-glow-pink {
+  box-shadow: 0 0 30px rgba(255, 51, 102, 0.2);
+}
+
+/* ===== BUTTONS - URBAN STYLE ===== */
+.btn-urban {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: var(--accent);
+  color: var(--background);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-urban:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+}
+
+.btn-urban::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.2) 50%, transparent 60%);
+  transform: translateX(-100%);
+  transition: transform 0.5s;
+}
+
+.btn-urban:hover::before {
+  transform: translateX(100%);
+}
+
+.btn-outline-urban {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: transparent;
+  color: var(--foreground);
+  border: 2px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-outline-urban:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ===== LINKS ===== */
+.link-urban {
+  position: relative;
+  text-decoration: none;
+  color: var(--foreground);
+  transition: color 0.2s;
+}
+
+.link-urban::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.link-urban:hover {
+  color: var(--accent);
+}
+
+.link-urban:hover::after {
+  width: 100%;
+}
+
+/* ===== CARDS - STREETWEAR STYLE ===== */
+.card-urban {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-urban::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-pink));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.card-urban:hover {
+  border-color: var(--accent);
+  transform: translateY(-4px);
+}
+
+.card-urban:hover::before {
+  transform: scaleX(1);
+}
+
+/* ===== TAGS/BADGES ===== */
+.tag-urban {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  background: var(--subtle);
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.tag-accent {
+  background: rgba(0, 212, 255, 0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.tag-pink {
+  background: rgba(255, 51, 102, 0.1);
+  border-color: var(--accent-pink);
+  color: var(--accent-pink);
+}
+
+.tag-lime {
+  background: rgba(187, 255, 0, 0.1);
+  border-color: var(--accent-lime);
+  color: var(--accent-lime);
+}
+
+/* ===== GRADIENT TEXT ===== */
+.gradient-text {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-pink) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-lime {
+  background: linear-gradient(135deg, var(--accent-lime) 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===== DIVIDERS ===== */
+.divider-urban {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}
+
+.divider-accent {
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-pink), var(--accent-lime));
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes glow-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.8s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out forwards;
+}
+
+.animate-slide-in {
+  animation: slide-in-left 0.6s ease-out forwards;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* Stagger delays */
+.delay-1 {
+  animation-delay: 0.1s;
+}
+
+.delay-2 {
+  animation-delay: 0.2s;
+}
+
+.delay-3 {
+  animation-delay: 0.3s;
+}
+
+.delay-4 {
+  animation-delay: 0.4s;
+}
+
+.delay-5 {
+  animation-delay: 0.5s;
+}
+
+/* ===== SCROLLBAR - URBAN ===== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* ===== MASCOT CONTAINER ===== */
+.mascot-container {
+  position: relative;
+}
+
+.mascot-glow {
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(circle, rgba(0, 212, 255, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ===== SPECIAL EFFECTS ===== */
+.text-stroke {
+  -webkit-text-stroke: 2px var(--foreground);
+  color: transparent;
+}
+
+.text-stroke-accent {
+  -webkit-text-stroke: 2px var(--accent);
+  color: transparent;
+}
+
+/* Glitch effect */
+.glitch {
+  position: relative;
+}
+
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.glitch::before {
+  left: 2px;
+  text-shadow: -2px 0 var(--accent-pink);
+  clip: rect(24px, 550px, 90px, 0);
+  animation: glitch-1 2s infinite linear alternate-reverse;
+}
+
+.glitch::after {
+  left: -2px;
+  text-shadow: -2px 0 var(--accent);
+  clip: rect(85px, 550px, 140px, 0);
+  animation: glitch-2 2s infinite linear alternate-reverse;
+}
+
+@keyframes glitch-1 {
+  0% {
+    clip: rect(132px, 350px, 101px, 30px);
+  }
+
+  20% {
+    clip: rect(1px, 350px, 137px, 30px);
+  }
+
+  40% {
+    clip: rect(66px, 350px, 28px, 30px);
+  }
+
+  60% {
+    clip: rect(120px, 350px, 95px, 30px);
+  }
+
+  80% {
+    clip: rect(99px, 350px, 67px, 30px);
+  }
+
+  100% {
+    clip: rect(5px, 350px, 127px, 30px);
+  }
+}
+
+@keyframes glitch-2 {
+  0% {
+    clip: rect(129px, 350px, 36px, 30px);
+  }
+
+  20% {
+    clip: rect(36px, 350px, 4px, 30px);
+  }
+
+  40% {
+    clip: rect(85px, 350px, 66px, 30px);
+  }
+
+  60% {
+    clip: rect(91px, 350px, 91px, 30px);
+  }
+
+  80% {
+    clip: rect(12px, 350px, 60px, 30px);
+  }
+
+  100% {
+    clip: rect(69px, 350px, 29px, 30px);
+  }
+}
+
+/* ===== IMAGE HOVER EFFECTS ===== */
+.img-urban {
+  position: relative;
+  overflow: hidden;
+}
+
+.img-urban::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 50%, rgba(0, 0, 0, 0.8) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.img-urban:hover::after {
+  opacity: 1;
+}
+
+/* For older browser support */
+.btn-filled {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: none;
+  background: var(--accent);
+  color: var(--background);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-filled:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+}
+
+.btn-minimal {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 2px solid var(--border);
+  background: transparent;
+  color: var(--foreground);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-minimal:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
