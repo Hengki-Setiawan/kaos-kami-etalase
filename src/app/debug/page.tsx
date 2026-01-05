@@ -110,6 +110,28 @@ export default function DebugPage() {
                     </button>
                 </div>
             </div>
+
+            <div className="mt-8 pt-8 border-t border-white/10">
+                <h2 className="font-bold text-[#bbff00] mb-4">Network Connectivity Test</h2>
+                <button
+                    onClick={async () => {
+                        setStatus('Testing Network...');
+                        try {
+                            const url = process.env.NEXT_PUBLIC_SUPABASE_URL + '/auth/v1/health';
+                            const res = await fetch(url);
+                            const text = await res.text();
+                            setStatus(`Network Test: ${res.status} ${res.statusText}`);
+                            setError(`Response: ${text}`);
+                        } catch (err: any) {
+                            setStatus('Network Test Failed (Status 0)');
+                            setError('Possible CORS or AdBlocker issue. ' + err.message);
+                        }
+                    }}
+                    className="px-6 py-2 bg-[#bbff00] text-black font-bold rounded hover:bg-[#bbff00]/80"
+                >
+                    Test Health Endpoint
+                </button>
+            </div>
         </div>
     );
 }
