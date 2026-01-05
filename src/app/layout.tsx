@@ -44,11 +44,7 @@ export const metadata: Metadata = {
     description: "Streetwear dengan sentuhan anime & musik.",
     images: ["/og-image.jpg"]
   },
-  icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png"
-  }
+  // Next.js 13+ auto-detects icon.png and apple-icon.png from app directory
 };
 
 export const viewport: Viewport = {
