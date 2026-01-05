@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
     try {
@@ -28,24 +27,36 @@ export async function POST(request: NextRequest) {
         const randomStr = Math.random().toString(36).substring(2, 8);
         const ext = file.name.split('.').pop() || 'jpg';
         const filename = `product_${timestamp}_${randomStr}.${ext}`;
+        const filepath = `products/${filename}`;
 
-        // Ensure uploads directory exists
-        const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'products');
-        await mkdir(uploadsDir, { recursive: true });
+        // Convert file to ArrayBuffer then to Uint8Array for Supabase
+        const arrayBuffer = await file.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
 
-        // Write file
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        const filepath = path.join(uploadsDir, filename);
-        await writeFile(filepath, buffer);
+        // Upload to Supabase Storage
+        const { data, error } = await supabase.storage
+            .from('product-images')
+            .upload(filepath, uint8Array, {
+                contentType: file.type,
+                cacheControl: '3600',
+                upsert: false
+            });
 
-        // Return the public URL
-        const publicUrl = `/uploads/products/${filename}`;
+        if (error) {
+            console.error('Supabase upload error:', error);
+            return NextResponse.json({ error: `Upload failed: ${error.message}` }, { status: 500 });
+        }
+
+        // Get public URL
+        const { data: urlData } = supabase.storage
+            .from('product-images')
+            .getPublicUrl(filepath);
 
         return NextResponse.json({
-            url: publicUrl,
+            url: urlData.publicUrl,
             filename: filename,
-            message: 'File uploaded successfully'
+            path: filepath,
+            message: 'File uploaded successfully to Supabase Storage'
         });
 
     } catch (error: any) {
@@ -53,9 +64,3 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: `Upload failed: ${error?.message || 'Unknown error'}` }, { status: 500 });
     }
 }
-
-export const config = {
-    api: {
-        bodyParser: false,
-    },
-};
