@@ -70,6 +70,46 @@ export default function DebugPage() {
                     )}
                 </div>
             )}
+
+            <div className="mt-8 pt-8 border-t border-white/10">
+                <h2 className="font-bold text-[#ff3366] mb-4">Test Login (Auth Check)</h2>
+                <div className="space-y-4 max-w-sm">
+                    <input
+                        type="email"
+                        placeholder="Email"
+                        id="debug-email"
+                        className="w-full bg-white/10 p-2 rounded"
+                    />
+                    <input
+                        type="password"
+                        placeholder="Password"
+                        id="debug-password"
+                        className="w-full bg-white/10 p-2 rounded"
+                    />
+                    <button
+                        onClick={async () => {
+                            const email = (document.getElementById('debug-email') as HTMLInputElement).value;
+                            const password = (document.getElementById('debug-password') as HTMLInputElement).value;
+                            setStatus('Testing Login...');
+                            try {
+                                const { data, error } = await supabase.auth.signInWithPassword({
+                                    email,
+                                    password
+                                });
+                                if (error) throw error;
+                                setStatus('Login Success! User: ' + data.user.email);
+                            } catch (err: any) {
+                                console.error(err);
+                                setStatus('Login Failed');
+                                setError(JSON.stringify(err, null, 2));
+                            }
+                        }}
+                        className="px-6 py-2 bg-[#ff3366] text-white font-bold rounded hover:bg-[#ff3366]/80"
+                    >
+                        Test Login
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }
