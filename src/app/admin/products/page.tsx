@@ -291,7 +291,7 @@ export default function AdminProductsPage() {
                 category: formData.category,
                 description: formData.description,
                 lore: formData.lore,
-                price: Number(formData.price) || 0,
+                price: parseInt(String(formData.price), 10) || 0,
                 image_url: formData.image_url,
                 images: formData.images,
                 model: formData.model,
@@ -493,8 +493,8 @@ export default function AdminProductsPage() {
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className={`text-[10px] px-2 py-1 rounded font-bold flex items-center gap-1 ${link.platform === 'Shopee'
-                                                        ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30'
-                                                        : 'bg-pink-500/20 text-pink-400 hover:bg-pink-500/30'
+                                                    ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30'
+                                                    : 'bg-pink-500/20 text-pink-400 hover:bg-pink-500/30'
                                                     }`}
                                             >
                                                 {link.platform}
@@ -651,8 +651,8 @@ export default function AdminProductsPage() {
                                             key={size}
                                             onClick={() => handleSizeToggle(size)}
                                             className={`px-3 py-2 text-sm font-bold border transition-colors ${formData.sizes.includes(size)
-                                                    ? 'border-[#00d4ff] bg-[#00d4ff]/20 text-[#00d4ff]'
-                                                    : 'border-white/10 text-white/40 hover:border-white/30'
+                                                ? 'border-[#00d4ff] bg-[#00d4ff]/20 text-[#00d4ff]'
+                                                : 'border-white/10 text-white/40 hover:border-white/30'
                                                 }`}
                                         >
                                             {size}

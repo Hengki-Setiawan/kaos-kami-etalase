@@ -68,17 +68,15 @@ export function Footer() {
                     {/* Brand */}
                     <div className="col-span-2 md:col-span-1">
                         <div className="flex items-center gap-3 mb-6">
-                            {/* Small Kamito - Click 5x for admin */}
+                            {/* Logo - Click 5x for admin */}
                             <button
                                 onClick={handleLogoClick}
-                                className="w-10 h-10 rounded-full overflow-hidden bg-[#141414] border border-white/10 cursor-default"
+                                className="w-12 h-12 rounded-full overflow-hidden bg-[#141414] border border-white/10 cursor-default flex items-center justify-center"
                             >
-                                <Image
-                                    src="/kamito.png"
-                                    alt="Kamito"
-                                    width={40}
-                                    height={40}
-                                    className="w-full h-full object-cover"
+                                <img
+                                    src="/logo-white.png"
+                                    alt="Kaos Kami"
+                                    className="w-10 h-10 object-contain"
                                 />
                             </button>
                             <div>
