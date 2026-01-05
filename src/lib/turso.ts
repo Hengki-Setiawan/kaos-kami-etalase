@@ -1,22 +1,38 @@
-import { createClient } from '@libsql/client';
+import { createClient, Client } from '@libsql/client';
 
-const tursoUrl = process.env.TURSO_DATABASE_URL;
-const tursoAuthToken = process.env.TURSO_AUTH_TOKEN;
+let tursoClient: Client | null = null;
 
-if (!tursoUrl) {
-  throw new Error('TURSO_DATABASE_URL is not defined');
+function getTursoClient(): Client {
+  if (tursoClient) {
+    return tursoClient;
+  }
+
+  const tursoUrl = process.env.TURSO_DATABASE_URL;
+  const tursoAuthToken = process.env.TURSO_AUTH_TOKEN;
+
+  if (!tursoUrl) {
+    throw new Error('TURSO_DATABASE_URL is not defined. Please set it in your environment variables.');
+  }
+
+  tursoClient = createClient({
+    url: tursoUrl,
+    authToken: tursoAuthToken,
+  });
+
+  return tursoClient;
 }
 
-export const turso = createClient({
-  url: tursoUrl,
-  authToken: tursoAuthToken,
-});
+// Export a proxy object that lazily creates the client
+export const turso = {
+  execute: (...args: Parameters<Client['execute']>) => getTursoClient().execute(...args),
+  batch: (...args: Parameters<Client['batch']>) => getTursoClient().batch(...args),
+};
 
 // Helper types
 export interface Product {
   id: string;
   name: string;
-  series: 'dellerium' | 'anime_music';
+  series: string;
   description: string;
   image_url: string;
   lore: string;
