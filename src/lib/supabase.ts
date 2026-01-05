@@ -1,13 +1,37 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+let supabaseClient: SupabaseClient | null = null;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+function getSupabaseClient(): SupabaseClient {
+    if (supabaseClient) {
+        return supabaseClient;
+    }
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error('Supabase URL and Anon Key are required. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.');
+    }
+
+    supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+    return supabaseClient;
+}
+
+// Export a proxy that lazily creates the client
+export const supabase = {
+    get auth() {
+        return getSupabaseClient().auth;
+    },
+    get storage() {
+        return getSupabaseClient().storage;
+    },
+    from: (table: string) => getSupabaseClient().from(table),
+};
 
 // Auth helpers
 export async function signUp(email: string, password: string, username: string) {
-    const { data, error } = await supabase.auth.signUp({
+    const { data, error } = await getSupabaseClient().auth.signUp({
         email,
         password,
         options: {
@@ -18,7 +42,7 @@ export async function signUp(email: string, password: string, username: string) 
 }
 
 export async function signIn(email: string, password: string) {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await getSupabaseClient().auth.signInWithPassword({
         email,
         password,
     });
@@ -26,16 +50,16 @@ export async function signIn(email: string, password: string) {
 }
 
 export async function signOut() {
-    const { error } = await supabase.auth.signOut();
+    const { error } = await getSupabaseClient().auth.signOut();
     return { error };
 }
 
 export async function getSession() {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await getSupabaseClient().auth.getSession();
     return session;
 }
 
 export async function getUser() {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await getSupabaseClient().auth.getUser();
     return user;
 }
