@@ -30,7 +30,6 @@ const navItems = [
     { href: '/admin/products', label: 'Products', icon: Package },
     { href: '/admin/accessories', label: 'Accessories', icon: KeyRound },
     { href: '/admin/testimonials', label: 'Testimonials', icon: MessageSquare },
-    { href: '/admin/codes', label: 'QR Codes', icon: QrCode },
     { href: '/admin/attributes', label: 'Attributes', icon: Settings },
     { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];
