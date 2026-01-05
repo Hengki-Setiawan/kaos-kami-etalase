@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Menu, X, Scan, ChevronDown, KeyRound } from 'lucide-react';
+import { Menu, X, Scan, ChevronDown, KeyRound, Layers, Info } from 'lucide-react';
 
 const seriesItems = [
     {
@@ -53,8 +53,9 @@ export function Navbar() {
                             <button
                                 onClick={() => setSeriesOpen(!seriesOpen)}
                                 onBlur={() => setTimeout(() => setSeriesOpen(false), 150)}
-                                className="flex items-center gap-1 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white/70 hover:text-white transition-colors"
+                                className="flex items-center gap-2 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white/70 hover:text-white transition-colors"
                             >
+                                <Layers className="w-4 h-4" />
                                 Collections
                                 <ChevronDown className={`w-4 h-4 transition-transform ${seriesOpen ? 'rotate-180' : ''}`} />
                             </button>
@@ -98,12 +99,20 @@ export function Navbar() {
                             className="flex items-center gap-2 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white/70 hover:text-[#ff3366] transition-colors"
                         >
                             <KeyRound className="w-4 h-4" />
-                            Aksesoris
+                            Accessories
+                        </Link>
+
+                        <Link
+                            href="/about"
+                            className="flex items-center gap-2 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white/70 hover:text-[#bbff00] transition-colors"
+                        >
+                            <Info className="w-4 h-4" />
+                            About
                         </Link>
 
                         <Link
                             href="/scanner"
-                            className="flex items-center gap-2 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white/70 hover:text-[#bbff00] transition-colors"
+                            className="flex items-center gap-2 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white/70 hover:text-[#00d4ff] transition-colors"
                         >
                             <Scan className="w-4 h-4" />
                             Scan
@@ -146,12 +155,21 @@ export function Navbar() {
                                 onClick={() => setIsOpen(false)}
                             >
                                 <KeyRound className="w-5 h-5" />
-                                Aksesoris
+                                Accessories
+                            </Link>
+
+                            <Link
+                                href="/about"
+                                className="py-3 text-xl font-black uppercase tracking-wide flex items-center gap-3 hover:text-[#bbff00] transition-colors"
+                                onClick={() => setIsOpen(false)}
+                            >
+                                <Info className="w-5 h-5" />
+                                About
                             </Link>
 
                             <Link
                                 href="/scanner"
-                                className="py-3 text-xl font-black uppercase tracking-wide flex items-center gap-3 hover:text-[#bbff00] transition-colors"
+                                className="py-3 text-xl font-black uppercase tracking-wide flex items-center gap-3 hover:text-[#00d4ff] transition-colors"
                                 onClick={() => setIsOpen(false)}
                             >
                                 <Scan className="w-5 h-5" />
