@@ -4,9 +4,17 @@ import { NextResponse } from 'next/server';
 export const ADMIN_EMAILS = ['hengkisetiawan461@gmail.com'];
 
 /**
- * Check if the current user is an admin via email or metadata.
+ * Check if the current user is an admin.
+ * Uses session claims first (fast, no extra API call),
+ * then falls back to email check.
  */
 export async function checkIsAdmin(): Promise<boolean> {
+    // Try session claims first (fastest — reads from JWT token directly)
+    const { sessionClaims } = await auth();
+    const metadata = sessionClaims?.metadata as Record<string, string> | undefined;
+    if (metadata?.role === 'admin') return true;
+
+    // Fallback to full user data check
     const user = await currentUser();
     if (!user) return false;
 

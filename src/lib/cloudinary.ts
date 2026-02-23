@@ -73,3 +73,20 @@ export function getCloudinaryUrl(publicId: string, options: {
 export async function deleteFromCloudinary(publicId: string): Promise<void> {
     await cloudinary.uploader.destroy(publicId);
 }
+
+/**
+ * Optimize a Cloudinary URL by injecting f_auto,q_auto transformations.
+ * This converts images to the best format (WebP/AVIF) and auto-compresses quality.
+ * Works on any Cloudinary URL, including those stored in the database.
+ */
+export function optimizeCloudinaryUrl(url: string, width?: number): string {
+    if (!url || !url.includes('res.cloudinary.com')) return url;
+
+    // Build transformation string
+    const transforms = ['f_auto', 'q_auto'];
+    if (width) transforms.push(`w_${width}`);
+    const transformStr = transforms.join(',');
+
+    // Insert transformation after /upload/
+    return url.replace('/upload/', `/upload/${transformStr}/`);
+}

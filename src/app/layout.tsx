@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { PromoBanner } from "@/components/PromoBanner";
 import { Chatbot } from "@/components/Chatbot";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 const inter = Inter({
@@ -108,11 +109,16 @@ export default function RootLayout({
           <link rel="apple-touch-icon" href="/logo.png" />
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://res.cloudinary.com" />
+          <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+          <link rel="preconnect" href="https://img.clerk.com" />
+          <link rel="dns-prefetch" href="https://img.clerk.com" />
         </head>
         <body className={`${inter.variable} font-sans antialiased`} suppressHydrationWarning>
           <PromoBanner />
           {children}
           <Analytics />
+          <SpeedInsights />
           <Chatbot />
         </body>
       </html>

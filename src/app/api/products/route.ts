@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { turso } from '@/lib/turso';
 import { checkAuth } from '@/lib/auth';
+import { invalidateCache } from '@/lib/cache';
 
 // GET all products or by series
 export async function GET(request: NextRequest) {
@@ -105,6 +106,9 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        // Invalidate product caches
+        await invalidateCache('products:all', `products:id:${id}`);
+
         return NextResponse.json({ id, message: 'Product created successfully' }, { status: 201 });
     } catch (error: any) {
         console.error('Error creating product:', error);
@@ -178,6 +182,9 @@ export async function PUT(request: NextRequest) {
             }
         }
 
+        // Invalidate product caches
+        await invalidateCache('products:all', `products:id:${id}`);
+
         return NextResponse.json({ message: 'Product updated successfully' });
     } catch (error: any) {
         console.error('Error updating product:', error);
@@ -202,6 +209,9 @@ export async function DELETE(request: NextRequest) {
             sql: 'DELETE FROM products WHERE id = ?',
             args: [id]
         });
+
+        // Invalidate product caches
+        await invalidateCache('products:all', `products:id:${id}`);
 
         return NextResponse.json({ message: 'Product deleted successfully' });
     } catch (error) {
