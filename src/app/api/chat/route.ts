@@ -4,24 +4,14 @@ import { getAllProducts } from '@/lib/data';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 
-// Initialize Redis from Upstash
-const redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL!,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-});
-
-// Create a new ratelimiter, that allows 10 requests per 10 seconds
-const ratelimit = new Ratelimit({
-    redis: redis,
-    limiter: Ratelimit.slidingWindow(10, '10 s'),
-});
-
-// Initialize Groq client
-const groq = process.env.GROQ_API_KEY
-    ? new Groq({ apiKey: process.env.GROQ_API_KEY })
-    : null;
+// Imports remain at top
 
 export async function POST(request: Request) {
+    // Initialize Groq client dynamically
+    const groq = process.env.GROQ_API_KEY
+        ? new Groq({ apiKey: process.env.GROQ_API_KEY })
+        : null;
+
     if (!groq) {
         return NextResponse.json({ error: 'Groq API Key is not configured.' }, { status: 500 });
     }
@@ -34,9 +24,18 @@ export async function POST(request: Request) {
         }
 
         // --- Rate Limiting Check ---
-        // Basic identifier - using IP address from headers, fallback to "anonymous"
+        const redis = new Redis({
+            url: process.env.UPSTASH_REDIS_REST_URL || '',
+            token: process.env.UPSTASH_REDIS_REST_TOKEN || '',
+        });
+
+        const ratelimit = new Ratelimit({
+            redis: redis,
+            limiter: Ratelimit.slidingWindow(10, '10 s'),
+        });
+
         const ip = request.headers.get("x-forwarded-for") || 'anonymous';
-        const { success, remaining, limit, reset } = await ratelimit.limit(ip);
+        const { success } = await ratelimit.limit(ip);
 
         if (!success) {
             return NextResponse.json(
