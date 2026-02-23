@@ -4,10 +4,8 @@ import { getAllProducts } from '@/lib/data';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 
-// Imports remain at top
-
 export async function POST(request: Request) {
-    // Initialize Groq client dynamically
+    // Initialize Groq client
     const groq = process.env.GROQ_API_KEY
         ? new Groq({ apiKey: process.env.GROQ_API_KEY })
         : null;
@@ -23,25 +21,28 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Invalid messages format' }, { status: 400 });
         }
 
-        // --- Rate Limiting Check ---
-        const redis = new Redis({
-            url: process.env.UPSTASH_REDIS_REST_URL || '',
-            token: process.env.UPSTASH_REDIS_REST_TOKEN || '',
-        });
-
-        const ratelimit = new Ratelimit({
-            redis: redis,
-            limiter: Ratelimit.slidingWindow(10, '10 s'),
-        });
-
-        const ip = request.headers.get("x-forwarded-for") || 'anonymous';
-        const { success } = await ratelimit.limit(ip);
-
-        if (!success) {
-            return NextResponse.json(
-                { reply: "Maaf Kak, Kamito lagi kebanjiran chat nih! Sabar tunggu sebentar yah lalu coba lagi. 🙏🏻" },
-                { status: 429 }
-            );
+        // --- Rate Limiting (gracefully skip if Redis unavailable) ---
+        if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+            try {
+                const redis = new Redis({
+                    url: process.env.UPSTASH_REDIS_REST_URL,
+                    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+                });
+                const ratelimit = new Ratelimit({
+                    redis: redis,
+                    limiter: Ratelimit.slidingWindow(10, '10 s'),
+                });
+                const ip = request.headers.get("x-forwarded-for") || 'anonymous';
+                const { success } = await ratelimit.limit(ip);
+                if (!success) {
+                    return NextResponse.json(
+                        { reply: "Maaf Kak, Kamito lagi kebanjiran chat nih! Sabar tunggu sebentar yah lalu coba lagi. \ud83d\ude4f\ud83c\udffb" },
+                        { status: 429 }
+                    );
+                }
+            } catch (rateLimitError) {
+                console.warn('Rate limiting skipped (Redis error):', rateLimitError);
+            }
         }
         // ---------------------------
 
@@ -77,7 +78,7 @@ Ingat:
 
         const chatCompletion = await groq.chat.completions.create({
             messages: formattedMessages,
-            model: 'llama-3.1-8b-instant', // Updated supported fast model
+            model: 'llama-3.1-8b-instant',
             temperature: 0.7,
             max_tokens: 500,
         });
