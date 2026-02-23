@@ -23,27 +23,26 @@ export function Hero() {
                         </div>
 
                         {/* Main Title */}
-                        <h1 className="display-text mb-6 animate-fade-up delay-1">
-                            <span className="block text-white">URBAN</span>
-                            <span className="block gradient-text">STREET</span>
+                        <h1 className="display-text text-[clamp(3rem,10vw,8rem)] mb-6 animate-fade-up delay-1 leading-[0.85]">
+                            <span className="block text-white">KAMI</span>
+                            <span className="block gradient-text">URBAN</span>
                             <span className="block text-white">WEAR</span>
                         </h1>
 
                         {/* Description */}
                         <p className="text-lg text-white/60 max-w-md mb-8 animate-fade-up delay-2">
-                            Koleksi streetwear dengan sentuhan anime Jepang.
-                            Bold, edgy, dan authentic untuk kamu yang berani tampil beda.
+                            Website etalase official store grup komunitas <b>kami depresi</b>, <b>bahagia</b>, dan <b>skizo</b> di Facebook. <span className="italic text-white/80">Dari komunitas, untuk komunitas.</span>
                         </p>
 
                         {/* CTAs */}
                         <div className="flex flex-col sm:flex-row gap-4 animate-fade-up delay-3">
-                            <Link href="/series" className="btn-urban">
-                                Lihat Koleksi
-                                <ArrowRight className="w-4 h-4" />
+                            <Link href="#" className="btn-urban btn-tiktok bg-black hover:bg-black/80 border border-white/20 text-white">
+                                <Image src="/tiktok-icon.png" alt="TikTok Shop" width={24} height={24} className="w-5 h-5 object-contain" />
+                                TikTok Shop
                             </Link>
-                            <Link href="/scanner" className="btn-outline-urban">
-                                <Scan className="w-4 h-4" />
-                                Scan Label
+                            <Link href="#" className="btn-urban btn-shopee bg-[#ff6600] text-white hover:bg-[#ff5500]">
+                                <Image src="/shopee-icon.png" alt="Shopee" width={24} height={24} className="w-5 h-5 object-contain" />
+                                Shopee
                             </Link>
                         </div>
 

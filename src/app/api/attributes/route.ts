@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { turso } from '@/lib/turso';
+import { checkAuth } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,6 +28,8 @@ export async function GET(request: NextRequest) {
 
 // POST create attribute
 export async function POST(request: NextRequest) {
+    const authResult = await checkAuth();
+    if (authResult instanceof NextResponse) return authResult;
     try {
         const body = await request.json();
         const { type, value, label } = body;
@@ -51,6 +54,8 @@ export async function POST(request: NextRequest) {
 
 // DELETE attribute
 export async function DELETE(request: NextRequest) {
+    const authResult = await checkAuth();
+    if (authResult instanceof NextResponse) return authResult;
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');

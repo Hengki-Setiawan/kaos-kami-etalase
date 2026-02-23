@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { turso } from '@/lib/turso';
+import { checkAuth } from '@/lib/auth';
 
 // GET all products or by series
 export async function GET(request: NextRequest) {
@@ -50,6 +51,8 @@ export async function GET(request: NextRequest) {
 
 // POST create new product
 export async function POST(request: NextRequest) {
+    const authResult = await checkAuth();
+    if (authResult instanceof NextResponse) return authResult;
     try {
         const body = await request.json();
         const {
@@ -111,6 +114,8 @@ export async function POST(request: NextRequest) {
 
 // PUT update product
 export async function PUT(request: NextRequest) {
+    const authResult = await checkAuth();
+    if (authResult instanceof NextResponse) return authResult;
     try {
         const body = await request.json();
         const {
@@ -183,6 +188,8 @@ export async function PUT(request: NextRequest) {
 
 // DELETE product
 export async function DELETE(request: NextRequest) {
+    const authResult = await checkAuth();
+    if (authResult instanceof NextResponse) return authResult;
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { turso } from '@/lib/turso';
+import { checkAuth } from '@/lib/auth';
 
 // Generate short random code
 function generateCode(): string {
@@ -47,6 +48,8 @@ export async function GET(request: NextRequest) {
 
 // POST - Create new label
 export async function POST(request: NextRequest) {
+    const authResult = await checkAuth();
+    if (authResult instanceof NextResponse) return authResult;
     try {
         const body = await request.json();
         const {
@@ -83,6 +86,8 @@ export async function POST(request: NextRequest) {
 
 // PUT - Update label
 export async function PUT(request: NextRequest) {
+    const authResult = await checkAuth();
+    if (authResult instanceof NextResponse) return authResult;
     try {
         const body = await request.json();
         const { id, ...updates } = body;
@@ -131,6 +136,8 @@ export async function PUT(request: NextRequest) {
 
 // DELETE - Delete label
 export async function DELETE(request: NextRequest) {
+    const authResult = await checkAuth();
+    if (authResult instanceof NextResponse) return authResult;
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');

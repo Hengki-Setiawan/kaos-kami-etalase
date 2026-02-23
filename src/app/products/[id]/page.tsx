@@ -3,9 +3,18 @@
 import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { ArrowLeft, ShoppingBag, ChevronLeft, ChevronRight, Package, Ruler, Tag, Layers } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Package, Ruler, Tag, Layers } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useParams } from 'next/navigation';
+import { ProductReviews } from '@/components/ProductReviews';
+import { WishlistButton } from '@/components/WishlistButton';
+
+// Helper to check if a URL is a video
+const isVideoUrl = (url: string | undefined) => {
+    if (!url) return false;
+    return url.match(/\.(mp4|webm|ogg|mov)$/i) !== null;
+};
 
 interface Product {
     id: string;
@@ -110,6 +119,14 @@ export default function ProductDetailPage() {
     const shopeeLink = product.purchase_links?.find(l => l.platform === 'Shopee')?.url;
     const tiktokLink = product.purchase_links?.find(l => l.platform === 'TikTok Shop')?.url;
 
+    const handleTrackClick = (platform: string) => {
+        fetch('/api/analytics/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId: product.id, platform })
+        }).catch(console.error);
+    };
+
     return (
         <main className="min-h-screen bg-[#0a0a0a]">
             <Navbar />
@@ -127,11 +144,23 @@ export default function ProductDetailPage() {
                             <div className="relative aspect-square bg-[#141418] overflow-hidden mb-4">
                                 {allImages.length > 0 ? (
                                     <>
-                                        <img
-                                            src={allImages[currentImageIndex] as string}
-                                            alt={product.name}
-                                            className="w-full h-full object-cover transition-opacity duration-500"
-                                        />
+                                        {isVideoUrl(allImages[currentImageIndex] as string) ? (
+                                            <video
+                                                src={allImages[currentImageIndex] as string}
+                                                className="w-full h-full object-cover transition-opacity duration-500 bg-black"
+                                                controls
+                                                autoPlay
+                                                muted
+                                                loop
+                                                playsInline
+                                            />
+                                        ) : (
+                                            <img
+                                                src={allImages[currentImageIndex] as string}
+                                                alt={product.name}
+                                                className="w-full h-full object-cover transition-opacity duration-500"
+                                            />
+                                        )}
 
                                         {/* Navigation arrows */}
                                         {allImages.length > 1 && (
@@ -172,10 +201,14 @@ export default function ProductDetailPage() {
                                         <button
                                             key={idx}
                                             onClick={() => setCurrentImageIndex(idx)}
-                                            className={`flex-shrink-0 w-20 h-20 border-2 transition-colors ${idx === currentImageIndex ? 'border-[#00d4ff]' : 'border-transparent'
+                                            className={`flex-shrink-0 w-20 h-20 border-2 transition-colors relative overflow-hidden bg-black ${idx === currentImageIndex ? 'border-[#00d4ff]' : 'border-transparent'
                                                 }`}
                                         >
-                                            <img src={img as string} alt="" className="w-full h-full object-cover" />
+                                            {isVideoUrl(img as string) ? (
+                                                <video src={img as string} className="w-full h-full object-cover opacity-60" muted playsInline />
+                                            ) : (
+                                                <img src={img as string} alt="" className="w-full h-full object-cover" />
+                                            )}
                                         </button>
                                     ))}
                                 </div>
@@ -248,16 +281,19 @@ export default function ProductDetailPage() {
                                 )}
                             </div>
 
-                            {/* Purchase Buttons */}
+                            {/* Purchase & Interaction Buttons */}
                             <div className="space-y-3">
+                                <WishlistButton productId={product.id} />
+
                                 {shopeeLink && (
                                     <a
                                         href={shopeeLink}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center justify-center gap-3 py-4 w-full text-lg font-bold uppercase tracking-wider bg-[#EE4D2D] text-white hover:bg-[#EE4D2D]/90 transition-colors"
+                                        onClick={() => handleTrackClick('shopee')}
+                                        className="flex items-center justify-center gap-3 py-4 w-full text-lg font-bold uppercase tracking-wider bg-[#FF6600] text-white hover:bg-[#FF8833] btn-shopee transition-colors rounded-sm"
                                     >
-                                        <ShoppingBag className="w-5 h-5" />
+                                        <Image src="/shopee-icon.png" alt="Shopee" width={24} height={24} className="w-6 h-6 object-contain" />
                                         Beli di Shopee
                                     </a>
                                 )}
@@ -267,9 +303,10 @@ export default function ProductDetailPage() {
                                         href={tiktokLink}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center justify-center gap-3 py-4 w-full text-lg font-bold uppercase tracking-wider bg-[#FF0050] text-white hover:bg-[#FF0050]/90 transition-colors"
+                                        onClick={() => handleTrackClick('tiktok')}
+                                        className="flex items-center justify-center gap-3 py-4 w-full text-lg font-bold uppercase tracking-wider bg-black text-white hover:bg-black/90 btn-tiktok border border-white/10 transition-colors rounded-sm"
                                     >
-                                        <ShoppingBag className="w-5 h-5" />
+                                        <Image src="/tiktok-icon.png" alt="TikTok Shop" width={24} height={24} className="w-6 h-6 object-contain" />
                                         Beli di TikTok Shop
                                     </a>
                                 )}
@@ -290,6 +327,8 @@ export default function ProductDetailPage() {
                             )}
                         </div>
                     </div>
+
+                    <ProductReviews productId={product.id} />
                 </div>
             </section>
 

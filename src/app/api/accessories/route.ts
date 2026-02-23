@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { turso } from '@/lib/turso';
+import { checkAuth } from '@/lib/auth';
 
 // GET - fetch all accessories
 export async function GET() {
@@ -14,6 +15,8 @@ export async function GET() {
 
 // POST - create accessory
 export async function POST(request: NextRequest) {
+    const authResult = await checkAuth();
+    if (authResult instanceof NextResponse) return authResult;
     try {
         const body = await request.json();
         const { name, description, category, price, image_url } = body;
@@ -34,6 +37,8 @@ export async function POST(request: NextRequest) {
 
 // PUT - update accessory
 export async function PUT(request: NextRequest) {
+    const authResult = await checkAuth();
+    if (authResult instanceof NextResponse) return authResult;
     try {
         const body = await request.json();
         const { id, name, description, category, price, image_url } = body;
@@ -52,6 +57,8 @@ export async function PUT(request: NextRequest) {
 
 // DELETE - delete accessory
 export async function DELETE(request: NextRequest) {
+    const authResult = await checkAuth();
+    if (authResult instanceof NextResponse) return authResult;
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');

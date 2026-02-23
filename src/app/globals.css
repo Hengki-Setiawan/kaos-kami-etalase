@@ -190,6 +190,29 @@ h6 {
   color: var(--accent);
 }
 
+/* Custom Brands Buttons */
+.btn-tiktok {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.btn-tiktok:hover {
+  box-shadow: 0 0 20px rgba(255, 0, 80, 0.4), 0 0 20px rgba(0, 242, 254, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-shopee {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.btn-shopee:hover {
+  box-shadow: 0 0 20px rgba(255, 102, 0, 0.5);
+  transform: translateY(-2px);
+}
+
 /* ===== LINKS ===== */
 .link-urban {
   position: relative;
@@ -405,6 +428,7 @@ h6 {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -630,4 +654,25 @@ h6 {
 .btn-minimal:hover {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+/* ===== MARQUEE ANIMATION ===== */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(calc(-50% - 1rem));
+  }
+}
+
+.animate-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 40s linear infinite;
+}
+
+.animate-marquee-track:hover {
+  animation-play-state: paused;
 }

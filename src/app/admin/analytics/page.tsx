@@ -1,191 +1,143 @@
-'use client';
+import { auth } from '@clerk/nextjs/server';
+import { redirect } from 'next/navigation';
+import { turso } from '@/lib/turso';
+import { getProductById } from '@/lib/data';
+import { BarChart3, TrendingUp } from 'lucide-react';
 
-import { useState, useEffect } from 'react';
+export const revalidate = 0; // Disable cache for real-time analytics
 
-import { BarChart3, Users, Eye, TrendingUp, RefreshCw, Loader2 } from 'lucide-react';
+export default async function AdminAnalyticsPage() {
+    const { userId } = await auth();
 
-interface AnalyticsData {
-    period: string;
-    totalViews: number;
-    uniqueVisitors: number;
-    byPage: { page: string; views: number }[];
-    byDay: { date: string; views: number }[];
-    topProducts: { id: string; views: number }[];
-}
+    if (!userId) {
+        redirect('/sign-in');
+    }
 
-export default function AdminAnalyticsPage() {
-    const [data, setData] = useState<AnalyticsData | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [period, setPeriod] = useState('7d');
-    const [message, setMessage] = useState('');
+    // Fetch aggregate clicks
+    const query = `
+        SELECT product_id, platform, COUNT(*) as click_count
+        FROM product_clicks
+        GROUP BY product_id, platform
+        ORDER BY click_count DESC
+    `;
+    const result = await turso.execute({ sql: query, args: [] });
 
-    useEffect(() => {
-        fetchAnalytics();
-    }, [period]);
+    // Group by product
+    const stats: Record<string, { total: number; shopee: number; tiktok: number }> = {};
 
-    const fetchAnalytics = async () => {
-        setLoading(true);
-        try {
-            const res = await fetch(`/api/analytics?period=${period}`);
-            const result = await res.json();
-            if (result.error) {
-                setMessage('Jalankan migration dulu: /api/migrate/create-analytics');
-            } else {
-                setData(result);
-            }
-        } catch (error) {
-            setMessage('Error fetching analytics');
-        } finally {
-            setLoading(false);
+    result.rows.forEach(row => {
+        const pId = row.product_id as string;
+        const platform = row.platform as string;
+        const count = Number(row.click_count);
+
+        if (!stats[pId]) {
+            stats[pId] = { total: 0, shopee: 0, tiktok: 0 };
         }
-    };
 
-    const initMigration = async () => {
-        setLoading(true);
-        try {
-            await fetch('/api/migrate/create-analytics');
-            await fetchAnalytics();
-            setMessage('Migration berhasil!');
-            setTimeout(() => setMessage(''), 3000);
-        } catch (error) {
-            setMessage('Migration gagal');
-        }
-    };
+        stats[pId].total += count;
+        if (platform === 'shopee') stats[pId].shopee += count;
+        if (platform === 'tiktok') stats[pId].tiktok += count;
+    });
 
-    const maxViews = data?.byPage.length ? Math.max(...data.byPage.map(p => p.views)) : 1;
-    const maxDayViews = data?.byDay.length ? Math.max(...data.byDay.map(d => d.views)) : 1;
+    // Resolve product details
+    const analyticsData = await Promise.all(
+        Object.entries(stats).map(async ([productId, data]) => {
+            const product = await getProductById(productId);
+            return {
+                product,
+                productId,
+                ...data
+            };
+        })
+    );
+
+    // Sort by total clicks descending
+    analyticsData.sort((a, b) => b.total - a.total);
+
+    const totalShopee = analyticsData.reduce((sum, item) => sum + item.shopee, 0);
+    const totalTiktok = analyticsData.reduce((sum, item) => sum + item.tiktok, 0);
 
     return (
-        <div className="p-4 md:p-8">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+        <div className="max-w-6xl mx-auto">
+            <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Analytics</h1>
-                    <p className="text-white/40 text-sm">分析 · 분석</p>
-                </div>
-                <div className="flex gap-2">
-                    <select
-                        value={period}
-                        onChange={(e) => setPeriod(e.target.value)}
-                        className="bg-white/5 border border-white/10 px-4 py-2 text-sm text-white"
-                    >
-                        <option value="1d">Last 24h</option>
-                        <option value="7d">Last 7 days</option>
-                        <option value="30d">Last 30 days</option>
-                    </select>
-                    <button
-                        onClick={initMigration}
-                        className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-sm font-bold transition-colors"
-                    >
-                        <RefreshCw className="w-4 h-4" />
-                        Init
-                    </button>
+                    <h1 className="text-3xl font-black uppercase tracking-tight">Kinerja Marketplace</h1>
+                    <p className="text-white/40 mt-1">Lacak jumlah interaksi klik audiens ke Shopee dan TikTok Shop</p>
                 </div>
             </div>
 
-            {message && (
-                <div className={`mb-4 p-3 text-sm ${message.includes('berhasil') ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
-                    {message}
-                </div>
-            )}
-
-            {loading ? (
-                <div className="flex justify-center py-12">
-                    <Loader2 className="w-8 h-8 animate-spin text-[#00d4ff]" />
-                </div>
-            ) : data ? (
-                <div className="space-y-6">
-                    {/* Stats Cards */}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="card-urban p-6">
-                            <div className="flex items-center gap-3 mb-2">
-                                <Eye className="w-5 h-5 text-[#00d4ff]" />
-                                <span className="text-xs text-white/40 uppercase tracking-wider">Total Views</span>
-                            </div>
-                            <p className="text-3xl font-black text-[#00d4ff]">{data.totalViews.toLocaleString()}</p>
-                        </div>
-                        <div className="card-urban p-6">
-                            <div className="flex items-center gap-3 mb-2">
-                                <Users className="w-5 h-5 text-[#bbff00]" />
-                                <span className="text-xs text-white/40 uppercase tracking-wider">Unique Visitors</span>
-                            </div>
-                            <p className="text-3xl font-black text-[#bbff00]">{data.uniqueVisitors.toLocaleString()}</p>
-                        </div>
-                        <div className="card-urban p-6">
-                            <div className="flex items-center gap-3 mb-2">
-                                <BarChart3 className="w-5 h-5 text-[#ff3366]" />
-                                <span className="text-xs text-white/40 uppercase tracking-wider">Pages Tracked</span>
-                            </div>
-                            <p className="text-3xl font-black text-[#ff3366]">{data.byPage.length}</p>
-                        </div>
-                        <div className="card-urban p-6">
-                            <div className="flex items-center gap-3 mb-2">
-                                <TrendingUp className="w-5 h-5 text-white" />
-                                <span className="text-xs text-white/40 uppercase tracking-wider">Avg/Day</span>
-                            </div>
-                            <p className="text-3xl font-black">
-                                {data.byDay.length ? Math.round(data.totalViews / data.byDay.length) : 0}
-                            </p>
-                        </div>
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="bg-[#141418] p-6 border border-[#00d4ff]/20 rounded-sm">
+                    <div className="flex justify-between items-start mb-4">
+                        <span className="text-[#00d4ff]/60 font-bold uppercase tracking-wider text-xs">Total Klik Semua</span>
+                        <BarChart3 className="w-5 h-5 text-[#00d4ff]" />
                     </div>
-
-                    {/* Views by Day Chart */}
-                    {data.byDay.length > 0 && (
-                        <div className="bg-white/5 border border-white/10 p-6">
-                            <h3 className="font-bold uppercase tracking-wider mb-4 text-[#00d4ff]">Views by Day</h3>
-                            <div className="flex items-end gap-1 h-32">
-                                {data.byDay.map((day, i) => (
-                                    <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                                        <div
-                                            className="w-full bg-[#00d4ff]/50 hover:bg-[#00d4ff] transition-colors rounded-t"
-                                            style={{ height: `${(day.views / maxDayViews) * 100}%`, minHeight: '4px' }}
-                                            title={`${day.date}: ${day.views} views`}
-                                        />
-                                        <span className="text-[8px] text-white/30 truncate w-full text-center">
-                                            {new Date(day.date as string).getDate()}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Views by Page */}
-                    {data.byPage.length > 0 && (
-                        <div className="bg-white/5 border border-white/10 p-6">
-                            <h3 className="font-bold uppercase tracking-wider mb-4 text-[#bbff00]">Top Pages</h3>
-                            <div className="space-y-3">
-                                {data.byPage.map((page, i) => (
-                                    <div key={i} className="flex items-center gap-3">
-                                        <span className="text-xs text-white/40 w-6">{i + 1}.</span>
-                                        <div className="flex-1">
-                                            <div className="flex items-center justify-between mb-1">
-                                                <span className="text-sm font-medium truncate">{page.page}</span>
-                                                <span className="text-sm text-[#bbff00] font-bold">{page.views}</span>
-                                            </div>
-                                            <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full bg-[#bbff00]"
-                                                    style={{ width: `${(page.views / maxViews) * 100}%` }}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {data.byPage.length === 0 && (
-                        <div className="text-center py-12 text-white/40">
-                            Belum ada data. Page views akan tercatat saat pengunjung membuka website.
-                        </div>
-                    )}
+                    <span className="text-4xl font-black text-white">{totalShopee + totalTiktok}</span>
                 </div>
-            ) : (
-                <div className="text-center py-12 text-white/40">
-                    Klik Init untuk membuat tables analytics.
+                <div className="bg-[#141418] p-6 border border-[#ff6600]/20 rounded-sm">
+                    <div className="flex justify-between items-start mb-4">
+                        <span className="text-[#ff6600]/60 font-bold uppercase tracking-wider text-xs">Klik Shopee</span>
+                        <TrendingUp className="w-5 h-5 text-[#ff6600]" />
+                    </div>
+                    <span className="text-4xl font-black text-[#ff6600]">{totalShopee}</span>
                 </div>
-            )}
+                <div className="bg-[#141418] p-6 border border-[#ff0050]/20 rounded-sm">
+                    <div className="flex justify-between items-start mb-4">
+                        <span className="text-[#ff0050]/60 font-bold uppercase tracking-wider text-xs">Klik TikTok</span>
+                        <TrendingUp className="w-5 h-5 text-[#ff0050]" />
+                    </div>
+                    <span className="text-4xl font-black text-[#ff0050]">{totalTiktok}</span>
+                </div>
+            </div>
+
+            {/* Table */}
+            <div className="bg-[#141418] border border-white/5 overflow-hidden rounded-sm">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="border-b border-white/10 text-xs font-bold tracking-wider text-white/40 uppercase bg-black/40">
+                                <th className="px-6 py-4">Produk</th>
+                                <th className="px-6 py-4 text-center">Shopee</th>
+                                <th className="px-6 py-4 text-center">TikTok</th>
+                                <th className="px-6 py-4 text-center">Total Klik</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {analyticsData.length === 0 ? (
+                                <tr>
+                                    <td colSpan={4} className="px-6 py-12 text-center text-white/40">
+                                        Belum ada data klik. Klik akan tercatat saat pengunjung menekan tombol beli di halaman produk.
+                                    </td>
+                                </tr>
+                            ) : (
+                                analyticsData.map((item) => (
+                                    <tr key={item.productId} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-black overflow-hidden flex-shrink-0 border border-white/10">
+                                                    {item.product?.image_url ? (
+                                                        <img src={item.product.image_url} alt="" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-full bg-white/5"></div>
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <div className="font-bold uppercase leading-tight text-white">{item.product?.name || 'Produk Dihapus / Unknown'}</div>
+                                                    <div className="text-xs text-white/40 truncate w-32 md:w-auto">{item.product?.series || item.productId}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-center text-[#ff6600] font-bold">{item.shopee}</td>
+                                        <td className="px-6 py-4 text-center text-[#ff0050] font-bold">{item.tiktok}</td>
+                                        <td className="px-6 py-4 text-center text-[#00d4ff] font-black">{item.total}</td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     );
 }

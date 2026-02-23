@@ -1,7 +1,13 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Edit, Trash2, Save, X, Loader2, AlertCircle, Layers, ExternalLink, Upload, Image as ImageIcon } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, Loader2, AlertCircle, Layers, ExternalLink, Upload, Image as ImageIcon, Video, Sparkles } from 'lucide-react';
+
+// Helper to check if a URL is a video
+const isVideoUrl = (url: string | undefined) => {
+    if (!url) return false;
+    return url.match(/\.(mp4|webm|ogg|mov)$/i) !== null;
+};
 
 interface Product {
     id: string;
@@ -44,6 +50,8 @@ export default function AdminProductsPage() {
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState<string>('');
     const [success, setSuccess] = useState<string>('');
+    const [aiPrompt, setAiPrompt] = useState<string>('');
+    const [isGenerating, setIsGenerating] = useState(false);
 
     // Attributes from API
     const [categories, setCategories] = useState<string[]>([]);
@@ -268,6 +276,49 @@ export default function AdminProductsPage() {
         }
     };
 
+    const handleGenerateAI = async () => {
+        if (!aiPrompt.trim()) {
+            setError('Silakan masukkan prompt ide produk dulu');
+            return;
+        }
+        setIsGenerating(true);
+        setError('');
+
+        try {
+            const res = await fetch('/api/admin/generate-product', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: aiPrompt })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setFormData(prev => ({
+                    ...prev,
+                    name: data.name || prev.name,
+                    category: data.category || prev.category,
+                    description: data.description || prev.description,
+                    lore: data.lore || prev.lore,
+                    price: data.price || prev.price,
+                    model: data.model || prev.model,
+                    material: data.material || prev.material,
+                    sizes: typeof data.sizes === 'string' ? data.sizes.split(',').map((s: string) => s.trim()) : (data.sizes || prev.sizes),
+                    stock: data.stock || prev.stock
+                }));
+                setSuccess('Berhasil di-generate AI!');
+                setTimeout(() => setSuccess(''), 2000);
+            } else {
+                const result = await res.json();
+                setError(result.error || 'Gagal generate AI');
+            }
+        } catch (error) {
+            console.error('AI Gen error:', error);
+            setError('Terjadi kesalahan saat mencoba Groq API');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
@@ -439,7 +490,14 @@ export default function AdminProductsPage() {
                                 style={{ background: `linear-gradient(135deg, ${color}10 0%, transparent 50%)` }}
                             >
                                 {product.image_url ? (
-                                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover opacity-50 group-hover:opacity-100 transition-opacity" />
+                                    isVideoUrl(product.image_url) ? (
+                                        <div className="w-full h-full relative group-hover:opacity-100 opacity-80 transition-opacity flex items-center justify-center bg-black/40">
+                                            <video src={product.image_url} className="w-full h-full object-cover" muted loop playsInline />
+                                            <Video className="w-8 h-8 absolute text-white/50" />
+                                        </div>
+                                    ) : (
+                                        <img src={product.image_url} alt={product.name} className="w-full h-full object-cover opacity-50 group-hover:opacity-100 transition-opacity" />
+                                    )
                                 ) : (
                                     <IconComponent className="w-12 h-12 opacity-20" style={{ color }} strokeWidth={1} />
                                 )}
@@ -563,6 +621,31 @@ export default function AdminProductsPage() {
                         {success && (
                             <div className="mx-4 mt-4 p-3 bg-green-500/10 border border-green-500/30 text-green-400 text-sm">
                                 {success}
+                            </div>
+                        )}
+
+                        {!editingProduct && (
+                            <div className="mx-4 mt-4 p-4 bg-gradient-to-r from-[#bbff00]/10 to-transparent border border-[#bbff00]/20 rounded-lg">
+                                <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#bbff00] mb-2">
+                                    <Sparkles className="w-4 h-4" /> Generate dengan AI
+                                </label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={aiPrompt}
+                                        onChange={(e) => setAiPrompt(e.target.value)}
+                                        placeholder="Ide: Kaos hitam sablon naga dengan bahan katun..."
+                                        className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-[#bbff00]"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleGenerateAI}
+                                        disabled={isGenerating || !aiPrompt.trim()}
+                                        className="px-4 py-2 bg-[#bbff00] text-black font-bold text-sm tracking-wider hover:bg-[#aadd00] transition-colors disabled:opacity-50 whitespace-nowrap"
+                                    >
+                                        {isGenerating ? 'Mikir...' : 'Generate'}
+                                    </button>
+                                </div>
                             </div>
                         )}
 
@@ -701,7 +784,7 @@ export default function AdminProductsPage() {
                                 <input
                                     ref={fileInputRef}
                                     type="file"
-                                    accept="image/png,image/jpeg,image/jpg,image/webp"
+                                    accept="image/png,image/jpeg,image/jpg,image/webp,video/mp4,video/webm,video/quicktime"
                                     onChange={handleMainImageChange}
                                     className="hidden"
                                 />
@@ -717,7 +800,13 @@ export default function AdminProductsPage() {
                                     </button>
                                     {formData.image_url && (
                                         <div className="flex items-center gap-2 px-3 bg-white/5 rounded">
-                                            <img src={formData.image_url} alt="" className="w-8 h-8 object-cover rounded" />
+                                            {isVideoUrl(formData.image_url) ? (
+                                                <div className="w-8 h-8 bg-black/50 rounded flex items-center justify-center">
+                                                    <Video className="w-4 h-4 text-white/50" />
+                                                </div>
+                                            ) : (
+                                                <img src={formData.image_url} alt="" className="w-8 h-8 object-cover rounded" />
+                                            )}
                                             <span className="text-xs text-white/60 truncate max-w-[150px]">{formData.image_url.split('/').pop()}</span>
                                             <button type="button" onClick={() => setFormData({ ...formData, image_url: '' })} className="text-white/40 hover:text-red-400">
                                                 <X className="w-4 h-4" />
@@ -733,7 +822,7 @@ export default function AdminProductsPage() {
                                 <input
                                     ref={additionalFileInputRef}
                                     type="file"
-                                    accept="image/png,image/jpeg,image/jpg,image/webp"
+                                    accept="image/png,image/jpeg,image/jpg,image/webp,video/mp4,video/webm,video/quicktime"
                                     onChange={handleAdditionalImageChange}
                                     className="hidden"
                                 />
@@ -748,8 +837,15 @@ export default function AdminProductsPage() {
                                 </button>
                                 <div className="grid grid-cols-4 gap-2">
                                     {formData.images.map((img, idx) => (
-                                        <div key={idx} className="relative group">
-                                            <img src={img} alt="" className="w-full aspect-square object-cover rounded" />
+                                        <div key={idx} className="relative group bg-black/40 rounded flex items-center justify-center overflow-hidden aspect-square">
+                                            {isVideoUrl(img) ? (
+                                                <>
+                                                    <video src={img} className="w-full h-full object-cover opacity-80" muted playsInline />
+                                                    <Video className="w-6 h-6 absolute text-white/50" />
+                                                </>
+                                            ) : (
+                                                <img src={img} alt="" className="w-full h-full object-cover" />
+                                            )}
                                             <button
                                                 type="button"
                                                 onClick={() => handleRemoveImage(idx)}

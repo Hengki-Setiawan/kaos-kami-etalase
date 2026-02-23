@@ -2,7 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+import { useUser, useClerk, UserButton } from '@clerk/nextjs';
 import {
     LayoutDashboard,
     Package,
@@ -10,59 +11,42 @@ import {
     Layers,
     KeyRound,
     Settings,
-    LogOut,
     Menu,
     X,
     Home,
     FileText,
     MessageSquare,
     BarChart3,
-    Tag
+    Tag,
+    Users
 } from 'lucide-react';
-import { useAdmin } from '@/contexts/AdminContext';
 
 const navItems = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+    { href: '/admin/users', label: 'Users', icon: Users },
     { href: '/admin/labels', label: 'Labels', icon: Tag },
     { href: '/admin/pages', label: 'Pages', icon: FileText },
     { href: '/admin/series', label: 'Series', icon: Layers },
     { href: '/admin/products', label: 'Products', icon: Package },
     { href: '/admin/accessories', label: 'Accessories', icon: KeyRound },
-    { href: '/admin/testimonials', label: 'Testimonials', icon: MessageSquare },
+    { href: '/admin/reviews', label: 'Reviews', icon: MessageSquare },
     { href: '/admin/attributes', label: 'Attributes', icon: Settings },
     { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const router = useRouter();
-    const { user, signOut, loading } = useAdmin();
+    const { user, isLoaded } = useUser();
     const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
-    const handleLogout = async () => {
-        await signOut();
-        router.push('/');
-    };
-
     // Show loading state
-    if (loading) {
+    if (!isLoaded) {
         return (
             <div className="min-h-screen bg-[#0a0a0c] flex items-center justify-center">
                 <div className="w-8 h-8 border-2 border-[#00d4ff] border-t-transparent rounded-full animate-spin" />
             </div>
         );
-    }
-
-    // Redirect if not logged in (except login page)
-    if (!user && pathname !== '/admin/login') {
-        router.push('/admin/login');
-        return null;
-    }
-
-    // Don't show layout for login page
-    if (pathname === '/admin/login') {
-        return <>{children}</>;
     }
 
     return (
@@ -99,7 +83,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                     </div>
 
                     {/* Nav */}
-                    <nav className="flex-1 p-4 space-y-1">
+                    <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
                         {navItems.map((item) => {
                             const isActive = pathname === item.href ||
                                 (item.href !== '/admin' && pathname.startsWith(item.href));
@@ -126,19 +110,19 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                     {/* Bottom */}
                     <div className="p-4 border-t border-white/5 space-y-1">
                         <Link
+                            href="/dashboard"
+                            className="flex items-center gap-3 px-4 py-3 w-full rounded-lg text-white/50 hover:text-white hover:bg-white/5 transition-colors"
+                        >
+                            <Users className="w-5 h-5" />
+                            Member Profile
+                        </Link>
+                        <Link
                             href="/"
                             className="flex items-center gap-3 px-4 py-3 w-full rounded-lg text-white/50 hover:text-white hover:bg-white/5 transition-colors"
                         >
                             <Home className="w-5 h-5" />
-                            Back to Site
+                            Back to Store
                         </Link>
-                        <button
-                            onClick={handleLogout}
-                            className="flex items-center gap-3 px-4 py-3 w-full rounded-lg text-white/50 hover:text-[#ff3366] hover:bg-[#ff3366]/10 transition-colors"
-                        >
-                            <LogOut className="w-5 h-5" />
-                            Logout
-                        </button>
                     </div>
                 </div>
             </aside>
@@ -154,12 +138,17 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                         <Menu className="w-6 h-6" />
                     </button>
                     <div className="flex items-center gap-4 ml-auto">
-                        <span className="text-sm text-white/40">{user?.email}</span>
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#00d4ff] to-[#ff3366] flex items-center justify-center">
-                            <span className="text-white text-sm font-bold">
-                                {user?.email?.charAt(0).toUpperCase()}
-                            </span>
-                        </div>
+                        <span className="text-sm text-white/40">
+                            {user?.firstName || user?.emailAddresses?.[0]?.emailAddress || 'Admin'}
+                        </span>
+                        <UserButton
+                            afterSignOutUrl="/"
+                            appearance={{
+                                elements: {
+                                    avatarBox: 'w-8 h-8',
+                                }
+                            }}
+                        />
                     </div>
                 </header>
 

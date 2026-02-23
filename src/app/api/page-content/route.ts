@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { turso } from '@/lib/turso';
+import { checkAuth } from '@/lib/auth';
 
 // GET - Fetch all page content or filter by page
 export async function GET(request: NextRequest) {
@@ -44,6 +45,8 @@ export async function GET(request: NextRequest) {
 
 // POST - Update page content
 export async function POST(request: NextRequest) {
+    const authResult = await checkAuth();
+    if (authResult instanceof NextResponse) return authResult;
     try {
         const body = await request.json();
         const { page, section, key, value } = body;
@@ -81,6 +84,8 @@ export async function POST(request: NextRequest) {
 
 // PUT - Bulk update content for a page
 export async function PUT(request: NextRequest) {
+    const authResult = await checkAuth();
+    if (authResult instanceof NextResponse) return authResult;
     try {
         const body = await request.json();
         const { page, content } = body;

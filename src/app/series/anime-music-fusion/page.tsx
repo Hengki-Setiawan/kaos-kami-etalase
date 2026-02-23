@@ -1,8 +1,15 @@
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { ArrowLeft, Music, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Users, ShoppingBag, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getProductsBySeries } from '@/lib/data';
+
+// Helper to check if a URL is a video
+const isVideoUrl = (url: string | undefined) => {
+    if (!url) return false;
+    return url.match(/\.(mp4|webm|ogg|mov)$/i) !== null;
+};
 
 export const revalidate = 0;
 
@@ -72,14 +79,25 @@ export default async function AnimeMusicFusionPage() {
                                     >
                                         <div className="aspect-square bg-gradient-to-br from-[#ff3366]/5 to-transparent relative overflow-hidden">
                                             {product.image_url ? (
-                                                <img
-                                                    src={product.image_url}
-                                                    alt={product.name}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                                />
+                                                isVideoUrl(product.image_url) ? (
+                                                    <video
+                                                        src={product.image_url}
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80"
+                                                        muted
+                                                        loop
+                                                        playsInline
+                                                        autoPlay
+                                                    />
+                                                ) : (
+                                                    <img
+                                                        src={product.image_url}
+                                                        alt={product.name}
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                    />
+                                                )
                                             ) : (
                                                 <div className="absolute inset-0 flex items-center justify-center">
-                                                    <Music className="w-16 h-16 text-[#ff3366]/20 group-hover:text-[#ff3366]/40 transition-colors" strokeWidth={1} />
+                                                    <Users className="w-16 h-16 text-[#ff3366]/20 group-hover:text-[#ff3366]/40 transition-colors" strokeWidth={1} />
                                                 </div>
                                             )}
 
@@ -107,16 +125,21 @@ export default async function AnimeMusicFusionPage() {
                                             <p className="text-lg font-bold text-[#ff3366] mb-4">
                                                 Rp {product.price.toLocaleString()}
                                             </p>
-
+                                            {/* Purchase links preview */}
                                             <div className="flex gap-2 mb-4">
                                                 {shopeeLink && (
-                                                    <span className="text-[10px] px-2 py-1 bg-orange-500/20 text-orange-400 font-bold">Shopee</span>
+                                                    <span className="text-[10px] px-2 py-1 bg-[#ff6600]/20 text-[#ff6600] font-bold flex items-center gap-1 rounded-sm">
+                                                        <Image src="/shopee-icon.png" alt="Shopee" width={12} height={12} className="w-3 h-3 object-contain" />
+                                                        Shopee
+                                                    </span>
                                                 )}
                                                 {tiktokLink && (
-                                                    <span className="text-[10px] px-2 py-1 bg-pink-500/20 text-pink-400 font-bold">TikTok</span>
+                                                    <span className="text-[10px] px-2 py-1 bg-[#ff0050]/20 text-[#ff0050] font-bold flex items-center gap-1 rounded-sm">
+                                                        <Image src="/tiktok-icon.png" alt="TikTok" width={12} height={12} className="w-3 h-3 object-contain" />
+                                                        TikTok
+                                                    </span>
                                                 )}
                                             </div>
-
                                             <div className="flex items-center justify-between text-sm font-bold uppercase tracking-wider text-[#ff3366]">
                                                 <span>Lihat Detail</span>
                                                 <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

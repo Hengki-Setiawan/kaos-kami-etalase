@@ -2,7 +2,14 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ArrowLeft, Users, ShoppingBag, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getProductsBySeries } from '@/lib/data';
+
+// Helper to check if a URL is a video
+const isVideoUrl = (url: string | undefined) => {
+    if (!url) return false;
+    return url.match(/\.(mp4|webm|ogg|mov)$/i) !== null;
+};
 
 export const revalidate = 0; // Disable cache for real-time updates
 
@@ -73,11 +80,22 @@ export default async function KamiCommunityPage() {
                                     >
                                         <div className="aspect-square bg-gradient-to-br from-[#bbff00]/5 to-transparent relative overflow-hidden">
                                             {product.image_url ? (
-                                                <img
-                                                    src={product.image_url}
-                                                    alt={product.name}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                                />
+                                                isVideoUrl(product.image_url) ? (
+                                                    <video
+                                                        src={product.image_url}
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80"
+                                                        muted
+                                                        loop
+                                                        playsInline
+                                                        autoPlay
+                                                    />
+                                                ) : (
+                                                    <img
+                                                        src={product.image_url}
+                                                        alt={product.name}
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                    />
+                                                )
                                             ) : (
                                                 <div className="absolute inset-0 flex items-center justify-center">
                                                     <Users className="w-16 h-16 text-[#bbff00]/20 group-hover:text-[#bbff00]/40 transition-colors" strokeWidth={1} />
@@ -114,12 +132,14 @@ export default async function KamiCommunityPage() {
                                             {/* Purchase links preview */}
                                             <div className="flex gap-2 mb-4">
                                                 {shopeeLink && (
-                                                    <span className="text-[10px] px-2 py-1 bg-orange-500/20 text-orange-400 font-bold">
+                                                    <span className="text-[10px] px-2 py-1 bg-[#ff6600]/20 text-[#ff6600] font-bold flex items-center gap-1 rounded-sm">
+                                                        <Image src="/shopee-icon.png" alt="Shopee" width={12} height={12} className="w-3 h-3 object-contain" />
                                                         Shopee
                                                     </span>
                                                 )}
                                                 {tiktokLink && (
-                                                    <span className="text-[10px] px-2 py-1 bg-pink-500/20 text-pink-400 font-bold">
+                                                    <span className="text-[10px] px-2 py-1 bg-[#ff0050]/20 text-[#ff0050] font-bold flex items-center gap-1 rounded-sm">
+                                                        <Image src="/tiktok-icon.png" alt="TikTok" width={12} height={12} className="w-3 h-3 object-contain" />
                                                         TikTok
                                                     </span>
                                                 )}

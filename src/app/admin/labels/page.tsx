@@ -518,7 +518,6 @@ export default function AdminLabelsPage() {
                                         >
                                             <option value="Shopee">Shopee</option>
                                             <option value="TikTok Shop">TikTok Shop</option>
-                                            <option value="Tokopedia">Tokopedia</option>
                                             <option value="WhatsApp">WhatsApp</option>
                                         </select>
                                         <input

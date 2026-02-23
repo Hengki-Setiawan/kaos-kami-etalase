@@ -1,5 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
+import { PromoBanner } from "@/components/PromoBanner";
+import { Chatbot } from "@/components/Chatbot";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
 const inter = Inter({
@@ -18,6 +22,11 @@ export const metadata: Metadata = {
   creator: "Kaos Kami",
   publisher: "Kaos Kami",
   manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Kaos Kami",
+  },
   robots: {
     index: true,
     follow: true,
@@ -68,18 +77,45 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" suppressHydrationWarning>
-      <head>
-        <link rel="icon" type="image/png" sizes="32x32" href="/logo.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/logo.png" />
-        <link rel="shortcut icon" href="/logo.png" />
-        <link rel="apple-touch-icon" href="/logo.png" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-      </head>
-      <body className={`${inter.variable} font-sans antialiased`} suppressHydrationWarning>
-        {children}
-      </body>
-    </html>
+    <ClerkProvider
+      appearance={{
+        variables: {
+          colorPrimary: '#00d4ff',
+          colorBackground: '#0a0a0c',
+          colorText: '#ffffff',
+          colorTextSecondary: '#ffffff80',
+          colorInputBackground: '#141418',
+          colorInputText: '#ffffff',
+          borderRadius: '0px',
+        },
+        elements: {
+          card: 'bg-[#0f0f12] border border-white/10 shadow-2xl',
+          formButtonPrimary: 'bg-[#00d4ff] hover:bg-[#00d4ff]/90 text-black font-bold uppercase tracking-wider',
+          footerActionLink: 'text-[#00d4ff] hover:text-[#00d4ff]/80',
+          headerTitle: 'text-white font-black uppercase tracking-tight',
+          headerSubtitle: 'text-white/40',
+          socialButtonsBlockButton: 'border-white/10 hover:bg-white/5',
+          formFieldLabel: 'text-white/60 uppercase tracking-wider text-xs font-bold',
+          formFieldInput: 'bg-white/5 border-white/10 text-white',
+        },
+      }}
+    >
+      <html lang="id" suppressHydrationWarning>
+        <head>
+          <link rel="icon" type="image/png" sizes="32x32" href="/logo.png" />
+          <link rel="icon" type="image/png" sizes="16x16" href="/logo.png" />
+          <link rel="shortcut icon" href="/logo.png" />
+          <link rel="apple-touch-icon" href="/logo.png" />
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        </head>
+        <body className={`${inter.variable} font-sans antialiased`} suppressHydrationWarning>
+          <PromoBanner />
+          {children}
+          <Analytics />
+          <Chatbot />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

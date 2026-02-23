@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { turso } from '@/lib/turso';
+import { checkAuth } from '@/lib/auth';
 
 // GET - Fetch testimonials
 export async function GET(request: NextRequest) {
@@ -35,6 +36,8 @@ export async function GET(request: NextRequest) {
 
 // POST - Create testimonial
 export async function POST(request: NextRequest) {
+    const authResult = await checkAuth();
+    if (authResult instanceof NextResponse) return authResult;
     try {
         const body = await request.json();
         const { name, role, content, rating, image_url, is_featured } = body;
@@ -59,6 +62,8 @@ export async function POST(request: NextRequest) {
 
 // DELETE - Delete testimonial
 export async function DELETE(request: NextRequest) {
+    const authResult = await checkAuth();
+    if (authResult instanceof NextResponse) return authResult;
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
@@ -81,6 +86,8 @@ export async function DELETE(request: NextRequest) {
 
 // PUT - Update testimonial
 export async function PUT(request: NextRequest) {
+    const authResult = await checkAuth();
+    if (authResult instanceof NextResponse) return authResult;
     try {
         const body = await request.json();
         const { id, name, role, content, rating, image_url, is_featured } = body;

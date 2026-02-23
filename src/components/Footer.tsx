@@ -156,17 +156,19 @@ export function Footer() {
                                 href="https://shopee.co.id/kaoskami"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="block py-2 px-4 text-sm font-bold bg-[#EE4D2D]/10 text-[#EE4D2D] hover:bg-[#EE4D2D]/20 transition-colors"
+                                className="flex items-center gap-2 py-2 px-4 text-sm font-bold bg-[#FF6600]/10 text-[#FF6600] hover:bg-[#FF6600]/20 transition-colors rounded-sm border border-[#FF6600]/20"
                             >
+                                <Image src="/shopee-icon.png" alt="Shopee" width={16} height={16} className="w-4 h-4 object-contain" />
                                 Shopee
                             </a>
                             <a
-                                href="https://tokopedia.com/kaoskami"
+                                href="https://vt.tiktok.com/ZSmuXj8b4/"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="block py-2 px-4 text-sm font-bold bg-[#42B549]/10 text-[#42B549] hover:bg-[#42B549]/20 transition-colors"
+                                className="flex items-center gap-2 py-2 px-4 text-sm font-bold bg-white/10 text-white hover:bg-white/20 transition-colors rounded-sm border border-white/20"
                             >
-                                Tokopedia
+                                <Image src="/tiktok-icon.png" alt="TikTok" width={16} height={16} className="w-4 h-4 object-contain" />
+                                TikTok Shop
                             </a>
                         </div>
                     </div>

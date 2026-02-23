@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, X, Scan, ChevronDown, KeyRound, Layers, Info, Search } from 'lucide-react';
+import { useUser, SignedIn, SignedOut } from '@clerk/nextjs';
+import { Menu, X, Scan, ChevronDown, KeyRound, Layers, Info, Search, User, LogIn } from 'lucide-react';
 import { SearchModal } from './SearchModal';
 
 const seriesItems = [
@@ -33,6 +34,7 @@ export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const [seriesOpen, setSeriesOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
+    const { user } = useUser();
 
     // Keyboard shortcut for search
     useEffect(() => {
@@ -79,7 +81,7 @@ export function Navbar() {
                             >
                                 <Search className="w-4 h-4" />
                                 <span className="text-xs">Search</span>
-                                <kbd className="text-[10px] px-1.5 py-0.5 bg-white/5 border border-white/10 rounded text-white/30">⌘K</kbd>
+                                <kbd className="text-[10px] px-1.5 py-0.5 bg-white/5 border border-white/10 rounded text-white/30">Ctrl K</kbd>
                             </button>
 
                             {/* Series Dropdown */}
@@ -146,11 +148,34 @@ export function Navbar() {
 
                             <Link
                                 href="/scanner"
-                                className="flex items-center gap-2 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white/70 hover:text-[#00d4ff] transition-colors"
+                                className="flex items-center gap-2 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white/70 hover:text-[#00d4ff] transition-colors relative"
                             >
                                 <Scan className="w-4 h-4" />
-                                Scan
+                                QR Label
+                                <span className="absolute -top-1 -right-2 text-[8px] px-1.5 py-0.5 bg-[#ff3366] text-white rounded font-bold animate-pulse">
+                                    COMING SOON
+                                </span>
                             </Link>
+
+                            {/* Auth Button */}
+                            <SignedIn>
+                                <Link
+                                    href="/dashboard"
+                                    className="flex items-center gap-2 px-4 py-2 ml-2 text-sm font-bold uppercase tracking-wider bg-[#00d4ff]/10 text-[#00d4ff] border border-[#00d4ff]/30 hover:bg-[#00d4ff]/20 transition-colors"
+                                >
+                                    <User className="w-4 h-4" />
+                                    {user?.firstName || 'Account'}
+                                </Link>
+                            </SignedIn>
+                            <SignedOut>
+                                <Link
+                                    href="/sign-in"
+                                    className="flex items-center gap-2 px-4 py-2 ml-2 text-sm font-bold uppercase tracking-wider bg-white/5 text-white/70 border border-white/10 hover:bg-white/10 hover:text-white transition-colors"
+                                >
+                                    <LogIn className="w-4 h-4" />
+                                    Login
+                                </Link>
+                            </SignedOut>
                         </div>
 
                         {/* Mobile: Search + Menu */}
@@ -216,8 +241,35 @@ export function Navbar() {
                                     onClick={() => setIsOpen(false)}
                                 >
                                     <Scan className="w-5 h-5" />
-                                    Scan QR
+                                    <span>QR Label</span>
+                                    <span className="text-[10px] px-2 py-0.5 bg-[#ff3366] text-white rounded font-bold ml-2">
+                                        SOON
+                                    </span>
                                 </Link>
+
+                                <div className="h-px bg-white/10 my-3" />
+
+                                {/* Mobile Auth */}
+                                <SignedIn>
+                                    <Link
+                                        href="/dashboard"
+                                        className="py-2 text-lg font-black uppercase tracking-wide flex items-center gap-3 text-[#00d4ff] hover:text-[#00d4ff]/80 transition-colors"
+                                        onClick={() => setIsOpen(false)}
+                                    >
+                                        <User className="w-5 h-5" />
+                                        My Account
+                                    </Link>
+                                </SignedIn>
+                                <SignedOut>
+                                    <Link
+                                        href="/sign-in"
+                                        className="py-3 text-lg font-black uppercase tracking-wide flex items-center justify-center gap-3 bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                                        onClick={() => setIsOpen(false)}
+                                    >
+                                        <LogIn className="w-5 h-5" />
+                                        Login
+                                    </Link>
+                                </SignedOut>
                             </div>
                         </div>
                     )}
