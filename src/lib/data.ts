@@ -121,3 +121,26 @@ export async function getProductById(id: string): Promise<Product | null> {
         }
     }, 300); // Cache 5 minutes
 }
+
+export async function getBestSellers(limit: number = 4): Promise<Product[]> {
+    return getCached(`products:bestsellers:${limit}`, async () => {
+        try {
+            // Using ORDER BY RANDOM() as a placeholder for actual sales data
+            const results = await turso.batch([
+                {
+                    sql: 'SELECT id, name, series, category, description, lore, price, image_url, model, material, sizes, stock, purchase_links FROM products ORDER BY RANDOM() LIMIT ?',
+                    args: [limit]
+                },
+                'SELECT product_id, image_url FROM product_images ORDER BY display_order'
+            ]);
+
+            const productRows = results[0].rows;
+            const images = results[1].rows;
+
+            return productRows.map(row => parseProductRow(row, images));
+        } catch (error) {
+            console.error('Error fetching best sellers:', error);
+            return [];
+        }
+    }, 60); // Cache 1 minute since it's random
+}
